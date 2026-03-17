@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    .login-page {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 100vh;
+    }
+
+    .login-brand {
+      background: linear-gradient(160deg, var(--primary) 0%, var(--primary-container) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-brand::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .login-form-side {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      background: var(--surface);
+    }
+
+    .login-form-card {
+      width: 100%;
+      max-width: 440px;
+    }
+
+    @media(max-width:768px) {
+      .login-page {
+        grid-template-columns: 1fr
+      }
+
+      .login-brand {
+        display: none
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-page">
+    <!-- Brand Side -->
+    <div class="login-brand">
+      <div>
+        <div style="font-family:var(--font-display);font-size:1.5rem;font-weight:600;margin-bottom:3rem">RITB</div>
+        <div class="display-md" style="color:#fff;font-style:italic;line-height:1.2;margin-bottom:1.5rem">
+          "The curator of your academic journey."
+        </div>
+        <p style="color:rgba(255,255,255,0.75);font-size:1rem;line-height:1.7">
+          Access the latest campus news, events, and resources through our premium digital editorial platform.
+        </p>
+      </div>
+      <div>
+        <div
+          style="background:rgba(255,255,255,0.1);backdrop-filter:blur(8px);border-radius:var(--radius-lg);padding:1.5rem">
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.8);margin-bottom:0.5rem">✦ <em>New to RITB?</em></p>
+          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.65)">Entering an unrecognized email will automatically
+            guide you through our streamlined registration flow.</p>
+        </div>
+        <p style="margin-top:1.5rem;font-size:0.8rem;color:rgba(255,255,255,0.45)">
+          <a href="#">Privacy Policy</a> · <a href="#">Terms of Service</a> · <a href="#">Support</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- Form Side -->
+    <div class="login-form-side">
+      <div class="login-form-card">
+        <div style="margin-bottom:2.5rem">
+          <h1 class="display-sm font-display" style="margin-bottom:0.5rem">Welcome back.</h1>
+          <p class="text-muted">Enter your university email to continue.</p>
+        </div>
+
+        <!-- Step 1: Email -->
+        <div id="step-email">
+          <div class="form-group">
+            <label class="form-label">University Email</label>
+            <input id="email-input" type="email" class="form-input" placeholder="you@ritb.edu" autofocus>
+            <div class="form-error hidden" id="email-error"></div>
+          </div>
+          <button class="btn btn-primary btn-full btn-lg" id="email-btn" onclick="checkEmail()">Continue</button>
+        </div>
+
+        <!-- Step 2a: Password Login -->
+        <div id="step-login" class="hidden">
+          <div style="background:var(--primary-fixed);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.5rem">
+            <p style="font-size:0.875rem;color:var(--primary);font-weight:600" id="login-greeting">Welcome back!</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input id="password-input" type="password" class="form-input" placeholder="Enter your password">
+            <div class="form-error hidden" id="login-error"></div>
+          </div>
+          <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()">Sign In</button>
+          <button class="btn btn-secondary btn-full mt-3" onclick="resetStep()">Use a different email</button>
+        </div>
+
+        <!-- Step 2b: Role Choice for New User -->
+        <div id="step-new-user" class="hidden">
+          <div
+            style="background:var(--surface-container-low);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1.5rem">
+            <p class="label-md text-muted mb-2">New Account</p>
+            <p class="text-sm text-muted">This email isn't in our system. Please choose your role to register:</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+            <button class="btn btn-outline btn-lg" id="btn-student-reg"
+              style="flex-direction:column;gap:0.5rem;height:auto;padding:1.5rem" onclick="goRegister('student')">
+              <span class="material-symbols-rounded" style="font-size:2rem">school</span>
+              I'm a Student
+            </button>
+            <button class="btn btn-outline btn-lg" id="btn-teacher-reg"
+              style="flex-direction:column;gap:0.5rem;height:auto;padding:1.5rem" onclick="goRegister('teacher')">
+              <span class="material-symbols-rounded" style="font-size:2rem">cast_for_education</span>
+              I'm a Faculty Member
+            </button>
+          </div>
+          <button class="btn btn-secondary btn-full mt-3" onclick="resetStep()">Use a different email</button>
+        </div>
+
+        <div style="margin-top:2rem;padding-top:2rem;border-top:1px solid var(--surface-container)">
+          <p class="text-muted text-sm text-center">Demo accounts: admin@ritb.edu / admin123</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let enteredEmail = '';
+
+    async function checkEmail() {
+      const email = document.getElementById('email-input').value.trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        showErr('email-error', 'Please enter a valid email address.');
+        return;
+      }
+      enteredEmail = email;
+      const btn = document.getElementById('email-btn');
+      btn.textContent = 'Checking...'; btn.disabled = true;
+      try {
+        const res = await apiFetch('/api/auth/check', { method: 'POST', body: JSON.stringify({ email }) });
+        if (res.exists) {
+          if (res.status === 'pending') {
+            showErr('email-error', 'Your account is pending admin approval.');
+            btn.textContent = 'Continue'; btn.disabled = false;
+            return;
+          }
+          document.getElementById('login-greeting').textContent = `Welcome back, ${res.name}! 👋`;
+          show('step-login'); hide('step-email');
+        } else {
+          show('step-new-user'); hide('step-email');
+        }
+      } catch (e) {
+        console.error('Login check error:', e);
+        showErr('email-error', e.message || 'Network error. Please try again.');
+      }
+      btn.textContent = 'Continue'; btn.disabled = false;
+    }
+
+    async function doLogin() {
+      const password = document.getElementById('password-input').value;
+      if (!password) { showErr('login-error', 'Please enter your password.'); return; }
+      try {
+        const res = await apiFetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email: enteredEmail, password }) });
+        showToast(`Welcome back, ${res.user.name}!`, 'success');
+        const role = res.user.role;
+        setTimeout(() => {
+          if (role === 'admin') goTo('admin.html');
+          else if (role === 'teacher') goTo('teacher-dashboard.html');
+          else goTo('index.html');
+        }, 800);
+      } catch (e) {
+        showErr('login-error', e.message || 'Invalid password.');
+      }
+    }
+
+    function goRegister(role) {
+      const url = (role === 'student' ? 'register-student' : 'register-teacher') + '.html?email=' + encodeURIComponent(enteredEmail);
+      goTo(url);
+    }
+
+    function resetStep() {
+      hide('step-login'); hide('step-new-user'); show('step-email');
+      document.getElementById('email-input').value = '';
+      document.getElementById('password-input').value = '';
+    }
+
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+    function showErr(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.remove('hidden'); }
+
+    document.getElementById('email-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkEmail(); });
+    document.getElementById('password-input') && document.getElementById('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+
+</html>
