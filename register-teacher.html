@@ -33,14 +33,18 @@
       justify-content: center;
     }
 
-    @media(max-width:768px) {
-      .reg-page {
-        grid-template-columns: 1fr
-      }
+    /* Photo picker toggle */
+    .photo-toggle { display:flex; gap:.5rem; margin-bottom:.75rem; }
+    .photo-toggle-btn {
+      flex:1; padding:.5rem; border-radius:var(--radius-md); border:1.5px solid var(--outline-variant);
+      background:var(--surface-container); color:var(--on-surface-variant);
+      font-size:.8125rem; font-weight:700; cursor:pointer; transition:all var(--transition);
+    }
+    .photo-toggle-btn.active { background:var(--primary-fixed); border-color:var(--primary); color:var(--primary); }
 
-      .reg-brand {
-        display: none
-      }
+    @media(max-width:768px) {
+      .reg-page { grid-template-columns: 1fr }
+      .reg-brand { display: none }
     }
   </style>
 </head>
@@ -58,10 +62,8 @@
           Begin your journey with RITB. We curate excellence by connecting the brightest minds across our departments.
         </p>
         <div style="background:rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:1.5rem;margin-top:2.5rem">
-          <p style="font-size:0.875rem;color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:0.3rem">⏳ Approval
-            Required</p>
-          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.7)">Faculty accounts are reviewed by an administrator
-            before activation. You'll be notified by email upon approval.</p>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:0.3rem">⏳ Approval Required</p>
+          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.7)">Faculty accounts are reviewed by an administrator before activation. You'll be notified by email upon approval.</p>
         </div>
       </div>
     </div>
@@ -73,8 +75,7 @@
         <div id="pending-state" class="hidden" style="text-align:center;padding:4rem 0">
           <div style="font-size:4rem;margin-bottom:1rem">🎓</div>
           <h2 class="display-sm font-display" style="margin-bottom:1rem">Application Submitted!</h2>
-          <p class="text-muted body-lg" style="margin-bottom:2rem">Your faculty profile is under review. An
-            administrator will approve your account shortly. You'll be able to log in once approved.</p>
+          <p class="text-muted body-lg" style="margin-bottom:2rem">Your faculty profile is under review. An administrator will approve your account shortly.</p>
           <a href="index.html" class="btn btn-primary btn-lg">Return to RITB</a>
         </div>
 
@@ -85,40 +86,45 @@
           </div>
 
           <form id="teacher-form" onsubmit="registerTeacher(event)">
+            <!-- Name + Designation -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
               <div class="form-group">
                 <label class="form-label">Full Name *</label>
                 <input id="name" type="text" class="form-input" placeholder="Dr. Jane Smith" required>
               </div>
               <div class="form-group">
-                <label class="form-label">Academic Title</label>
+                <label class="form-label">Designation</label>
                 <select id="title" class="form-select">
-                  <option value="">Select title</option>
+                  <option value="">Select designation</option>
                   <option>Assistant Professor</option>
                   <option>Associate Professor</option>
                   <option>Full Professor</option>
                   <option>Professor Emeritus</option>
                   <option>Visiting Professor</option>
                   <option>Lecturer</option>
+                  <option>Head of Department</option>
+                  <option>Dean</option>
                 </select>
               </div>
             </div>
 
+            <!-- Official Email -->
             <div class="form-group">
-              <label class="form-label">University Email *</label>
-              <input id="email" type="email" class="form-input" placeholder="you@scholastic.edu" required>
+              <label class="form-label">Official Email *</label>
+              <input id="email" type="email" class="form-input" placeholder="you@ritb.edu" required>
             </div>
 
+            <!-- Department -->
             <div class="form-group">
               <label class="form-label">Department *</label>
               <select id="department" class="form-select" required>
                 <option value="">Select department</option>
                 <option>Computer Science</option>
-                <option>Engineering & Robotics</option>
+                <option>Engineering &amp; Robotics</option>
                 <option>Life Sciences</option>
-                <option>Business & Economics</option>
-                <option>Arts & Humanities</option>
-                <option>Physics & Astronomy</option>
+                <option>Business &amp; Economics</option>
+                <option>Arts &amp; Humanities</option>
+                <option>Physics &amp; Astronomy</option>
                 <option>Mathematics</option>
                 <option>Social Sciences</option>
                 <option>Law</option>
@@ -126,29 +132,62 @@
               </select>
             </div>
 
+            <!-- Publications count + Experience -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              <div class="form-group">
+                <label class="form-label">Total Publications</label>
+                <input id="total_publications" type="number" class="form-input" placeholder="e.g. 25" min="0">
+                <p class="form-hint">Total number of published works.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Years of Experience</label>
+                <input id="experience" type="number" class="form-input" placeholder="e.g. 10" min="0">
+                <p class="form-hint">Years of academic experience.</p>
+              </div>
+            </div>
+
+            <!-- Research Areas -->
             <div class="form-group">
               <label class="form-label">Research Areas</label>
-              <input id="research_areas" type="text" class="form-input"
-                placeholder="e.g. Robotics, Machine Learning, HRI">
+              <input id="research_areas" type="text" class="form-input" placeholder="e.g. Robotics, Machine Learning, HRI">
               <p class="form-hint">Comma-separated list of your primary research interests.</p>
             </div>
 
+            <!-- Biography -->
             <div class="form-group">
               <label class="form-label">Biography</label>
-              <textarea id="bio" class="form-input" rows="4"
-                placeholder="Brief professional biography for the faculty directory..."></textarea>
+              <textarea id="bio" class="form-input" rows="4" placeholder="Brief professional biography for the faculty directory..."></textarea>
             </div>
 
+            <!-- Profile Photo — Drive link OR file upload -->
             <div class="form-group">
-              <label class="form-label">Profile Photo URL</label>
-              <input id="photo_url" type="url" class="form-input" placeholder="https://...">
-              <p class="form-hint">Provide a URL to a high-resolution professional headshot.</p>
+              <label class="form-label">Profile Photo</label>
+              <div class="photo-toggle">
+                <button type="button" class="photo-toggle-btn active" id="btn-url" onclick="setPhotoMode('url')">
+                  🔗 Drive / URL Link
+                </button>
+                <button type="button" class="photo-toggle-btn" id="btn-file" onclick="setPhotoMode('file')">
+                  📁 Upload from Device
+                </button>
+              </div>
+              <!-- URL input -->
+              <div id="photo-url-wrap">
+                <input id="photo_url" type="url" class="form-input" placeholder="https://drive.google.com/... or any image URL">
+                <p class="form-hint">Paste a Google Drive share link or direct image URL.</p>
+              </div>
+              <!-- File input -->
+              <div id="photo-file-wrap" style="display:none">
+                <input id="photo_file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                  onchange="previewPhoto(this)">
+                <img id="photo-preview" src="" alt="" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;margin-top:.75rem;border:2px solid var(--outline-variant)">
+                <p class="form-hint">JPG, PNG or WebP. Max 5 MB. Will be uploaded on submit.</p>
+              </div>
             </div>
 
+            <!-- Password -->
             <div class="form-group">
               <label class="form-label">Password *</label>
-              <input id="password" type="password" class="form-input" placeholder="At least 8 characters" required
-                minlength="8">
+              <input id="password" type="password" class="form-input" placeholder="At least 8 characters" required minlength="8">
             </div>
             <div class="form-group">
               <label class="form-label">Confirm Password *</label>
@@ -175,29 +214,84 @@
     const params = new URLSearchParams(window.location.search);
     if (params.get('email')) document.getElementById('email').value = params.get('email');
 
+    let photoMode = 'url';
+
+    function setPhotoMode(mode) {
+      photoMode = mode;
+      document.getElementById('btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('photo-url-wrap').style.display  = mode === 'url'  ? 'block' : 'none';
+      document.getElementById('photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+
+    function previewPhoto(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('photo-preview');
+        img.src = e.target.result;
+        img.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function uploadPhoto(file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const token = localStorage.getItem('token');
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', headers, body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      return data.url;
+    }
+
     async function registerTeacher(e) {
       e.preventDefault();
       const password = document.getElementById('password').value;
-      const confirm = document.getElementById('confirm').value;
+      const confirm  = document.getElementById('confirm').value;
       if (password !== confirm) {
         document.getElementById('form-error').textContent = 'Passwords do not match.';
         document.getElementById('form-error').classList.remove('hidden');
         return;
       }
+
       const btn = document.getElementById('submit-btn');
       btn.textContent = 'Submitting...'; btn.disabled = true;
+
       try {
+        let photo_url = document.getElementById('photo_url').value;
+
+        // If file mode, upload first
+        if (photoMode === 'file') {
+          const file = document.getElementById('photo_file').files[0];
+          if (file) {
+            btn.textContent = 'Uploading photo…';
+            photo_url = await uploadPhoto(file);
+          }
+        }
+
+        // Convert drive share link to direct image link if needed
+        const driveMatch = photo_url.match(/\/d\/([\w-]+)/);
+        if (driveMatch) {
+          photo_url = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+        }
+
         await apiFetch('/api/auth/register/teacher', {
           method: 'POST',
           body: JSON.stringify({
-            name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
+            name:               document.getElementById('name').value,
+            email:              document.getElementById('email').value,
             password,
-            title: document.getElementById('title').value,
-            department: document.getElementById('department').value,
-            research_areas: document.getElementById('research_areas').value,
-            bio: document.getElementById('bio').value,
-            photo_url: document.getElementById('photo_url').value
+            title:              document.getElementById('title').value,
+            department:         document.getElementById('department').value,
+            research_areas:     document.getElementById('research_areas').value,
+            bio:                document.getElementById('bio').value,
+            photo_url,
+            total_publications: parseInt(document.getElementById('total_publications').value) || 0,
+            experience:         parseInt(document.getElementById('experience').value) || 0,
           })
         });
         document.getElementById('form-state').classList.add('hidden');
