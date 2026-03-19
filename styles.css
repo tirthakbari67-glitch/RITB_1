@@ -1413,19 +1413,20 @@ tr:hover td {
   }
 
   /* ── Nav auth buttons in mobile dropdown ── */
-  #mobile-auth-link {
-    display: flex !important;
-    flex-direction: column;
-    gap: .5rem;
-    padding: .75rem .5rem;
-    border-top: 1px solid var(--surface-container);
-    margin-top: .25rem;
-  }
   #mobile-auth-link a,
   #mobile-auth-link button {
     width: 100%;
     justify-content: center;
     border-radius: var(--radius-pill);
+  }
+
+  /* ── Hero grid: stack on mobile so text is fully readable ── */
+  .hero-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+  .hero-grid-2col > div:last-child {
+    display: none; /* Hide hero image on mobile to keep it clean */
   }
 
   /* ── Teacher dashboard tabs ── */
