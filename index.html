@@ -227,18 +227,28 @@
       // Load events
       try {
         const events = await apiFetch('/api/events');
-        
-        // Filter for upcoming events (where end time is in the future)
+
+        // Filter for upcoming/ongoing events using LOCAL date (not UTC) to avoid timezone shift
         const now = new Date();
         const upcomingEvents = events.filter(ev => {
-          if (!ev.event_date || !ev.time_end) return true; // keep if data missing
-          const [hours, minutes] = ev.time_end.split(':');
-          const endDateTime = new Date(ev.event_date);
-          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          if (!ev.event_date) return true;
+          // Parse YYYY-MM-DD + time_end as LOCAL time to avoid UTC midnight shift
+          const [y, m, d] = ev.event_date.split('-').map(Number);
+          const [eh = 23, em = 59] = (ev.time_end || '23:59').split(':').map(Number);
+          const endDateTime = new Date(y, m - 1, d, eh, em, 0);
           return endDateTime >= now;
         });
-        
+
         const shown = upcomingEvents.slice(0, 3);
+        if (!shown.length) {
+          document.getElementById('events-grid').innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--on-surface-variant)">
+              <span class="material-symbols-rounded" style="font-size:3rem;display:block;margin-bottom:.75rem;opacity:.4">event_busy</span>
+              <p style="font-size:1rem;font-weight:600;margin-bottom:.25rem">No upcoming events</p>
+              <p style="font-size:.875rem">Check back soon — new events will appear here.</p>
+            </div>`;
+          return;
+        }
         document.getElementById('events-grid').innerHTML = shown.map(ev => `
       <a href="event-detail.html?id=${ev.id}" class="card" style="display:block">
         <img class="card-img" src="${ev.image_url}" alt="" onerror="imgFallback(this,'event')">
