@@ -219,6 +219,18 @@
     .del-student-btn:hover {
       background: var(--error-container);
     }
+
+    /* ─── Bio clamping in profile view card ─── */
+    .profile-bio-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.7;
+      max-height: calc(1.7em * 5);
+      word-break: break-word;
+    }
   </style>
 </head>
 
@@ -233,7 +245,6 @@
         <a href="news-archive.html">News</a>
         <a href="events-calendar.html">Events</a>
         <a href="faculty-directory.html">Faculty</a>
-        <a href="teacher-dashboard.html" class="active">Dashboard</a>
       </div>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
@@ -775,7 +786,7 @@
         <p class="text-muted text-sm">${myProfile.title} — ${myProfile.department}</p>
       </div>
     </div>
-    <p class="body-md text-muted mb-4" style="line-height:1.7;white-space:pre-wrap">${myProfile.bio || 'No biography yet.'}</p>
+    <p class="body-md text-muted mb-4 profile-bio-clamp">${myProfile.bio || 'No biography yet.'}</p>
     <div class="flex flex-wrap gap-2 mb-4">${areas.map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}</div>
     <a href="faculty-profile.html?id=${myProfile.id}" class="btn btn-outline btn-sm btn-pill" target="_blank">
       <span class="material-symbols-rounded" style="font-size:1rem">open_in_new</span> View Public Profile
