@@ -830,8 +830,8 @@
         // Profile view
         renderProfileView();
 
-        // Fill edit profile fields
-        if (myProfile) {
+        // Fill edit profile fields only if not pending
+        if (myProfile && currentUser.status !== 'pending') {
           document.getElementById('p-name').value = myProfile.name || '';
           document.getElementById('p-research').value = myProfile.research_areas || '';
           document.getElementById('p-bio').value = myProfile.bio || '';
@@ -845,27 +845,53 @@
       } catch (e) { console.error(e); }
     }
 
+    // Helper: make photo_url absolute (fixes /uploads/ paths when running on Netlify)
+    function resolvePhotoUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      // relative path — prefix with API server base
+      return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
     function renderProfileView() {
+      const profilePanel = document.getElementById('panel-profile');
+      const isPending = currentUser && currentUser.status === 'pending';
+
+      // If pending, replace entire profile panel with a waiting notice
+      if (isPending) {
+        profilePanel.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center">
+            <span class="material-symbols-rounded" style="font-size:4rem;color:var(--primary);margin-bottom:1.25rem">hourglass_top</span>
+            <h2 class="display-sm font-display" style="margin-bottom:0.75rem">Account Awaiting Approval</h2>
+            <p class="body-lg text-muted" style="max-width:460px;margin-bottom:2rem">
+              Your faculty profile is currently under review. Once an administrator approves your account,
+              your full profile and dashboard features will become available.
+            </p>
+            <div style="background:var(--primary-fixed);border-radius:var(--radius-lg);padding:1.5rem 2rem;max-width:360px;width:100%">
+              <p style="color:var(--primary);font-weight:600;margin-bottom:.25rem">What happens next?</p>
+              <p class="text-sm text-muted">The admin will review your registration and activate your account. Check back later or contact your administrator.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
       const el = document.getElementById('profile-view');
+      if (!el) return; // panel was replaced above
       if (!myProfile) {
         el.innerHTML = '<p class="text-muted text-sm">No faculty profile found. Contact admin to create your profile, or fill in the Edit Profile form.</p>';
         return;
       }
       const areas = (myProfile.research_areas || '').split(',').filter(x => x);
-      const isPending = currentUser && currentUser.status === 'pending';
-      const bioDisplay = isPending
-        ? '<span style="background:var(--surface-container);color:var(--on-surface-variant);font-size:.8rem;padding:.2rem .65rem;border-radius:999px;display:inline-flex;align-items:center;gap:.3rem;margin-bottom:1rem"><span class="material-symbols-rounded" style="font-size:.9rem">schedule</span>Pending admin approval</span>'
-        : `<p class="body-md text-muted mb-4 profile-bio-clamp">${myProfile.bio || 'No biography yet.'}</p>`;
-
+      const photoSrc = resolvePhotoUrl(myProfile.photo_url);
       el.innerHTML = `
     <div class="flex items-center gap-3 mb-3">
-      <img src="${myProfile.photo_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface-container)" onerror="imgFallback(this,'faculty')">
-      <div>
-        <h4 class="title-md">${myProfile.name}</h4>
-        <p class="text-muted text-sm">${myProfile.title} — ${myProfile.department}</p>
+      <img src="${photoSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface-container)" onerror="imgFallback(this,'faculty')">
+      <div style="min-width:0">
+        <h4 class="title-md" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.name}</h4>
+        <p class="text-muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.title} — ${myProfile.department}</p>
       </div>
     </div>
-    ${bioDisplay}
+    <p class="body-md text-muted mb-4 profile-bio-clamp">${myProfile.bio || 'No biography yet.'}</p>
     <div class="flex flex-wrap gap-2 mb-4">${areas.map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}</div>
     <a href="faculty-profile.html?id=${myProfile.id}" class="btn btn-outline btn-sm btn-pill" target="_blank">
       <span class="material-symbols-rounded" style="font-size:1rem">open_in_new</span> View Public Profile
