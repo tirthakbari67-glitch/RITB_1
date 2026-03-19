@@ -1033,7 +1033,42 @@ tr:hover td {
 }
 
 /* ─── Responsive ─── */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+
+  .nav-inner {
+    padding: 0 1.5rem;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+
+  /* Index hero 2-col → stack */
+  .hero-grid-2col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Editorial feed 1.5/1 → stack */
+  .editorial-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Events calendar 2/1 → stack */
+  .calendar-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
+
+  /* ── Navigation ── */
   .nav-links {
     display: none;
     position: absolute;
@@ -1045,6 +1080,7 @@ tr:hover td {
     padding: 1rem;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-top: 1px solid var(--surface-container);
+    z-index: 99;
   }
 
   .nav-links.active {
@@ -1055,11 +1091,81 @@ tr:hover td {
     display: flex !important;
   }
 
-  .footer-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+  .nav-inner {
+    padding: 0 1rem;
+    gap: 0.5rem;
   }
 
+  .nav-actions {
+    gap: 0.5rem;
+  }
+
+  .btn-nav-login {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.8rem;
+  }
+
+  /* ── Sections ── */
+  .section {
+    padding: 3rem 0;
+  }
+
+  .container,
+  .container-narrow {
+    padding: 0 1rem;
+  }
+
+  .hero {
+    padding: 4rem 0 3rem;
+  }
+
+  /* ── Inline grids in index.html hero ── */
+  [style*="grid-template-columns:1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  [style*="grid-template-columns:1.5fr 1fr"],
+  [style*="grid-template-columns: 1.5fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  [style*="grid-template-columns:2fr 1fr"],
+  [style*="grid-template-columns: 2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  /* ── Grids ── */
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ── Cards ── */
+  .flex.justify-between.items-center {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1rem;
+  }
+
+  /* ── Footer ── */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .footer {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  /* ── Dashboard ── */
   .dashboard-layout {
     flex-direction: column;
   }
@@ -1068,18 +1174,177 @@ tr:hover td {
     width: 100%;
     height: auto;
     position: static;
+    padding: 1rem;
   }
 
   .dashboard-main {
-    padding: 1.5rem;
+    padding: 1rem;
   }
 
-  .grid-3,
-  .grid-2 {
-    grid-template-columns: 1fr;
+  /* ── Buttons in hero ── */
+  [style*="display:flex;gap:1rem;flex-wrap:wrap"] {
+    flex-direction: column;
+  }
+
+  .btn-lg {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+    text-align: center;
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Secondary articles on home page (horizontal cards → vertical) ── */
+  #secondary-articles a {
+    flex-direction: column !important;
+  }
+  #secondary-articles a img {
+    width: 100% !important;
+    height: 160px !important;
+  }
+
+  /* ── Calendar ── */
+  .cal-grid {
+    font-size: 0.75rem;
+  }
+
+  .cal-day {
+    padding: 0.25rem;
+  }
+
+  .cal-date {
+    font-size: 0.75rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+  }
+
+  /* ── Events sidebar → below calendar ── */
+  [style*="grid-template-columns:2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Events-calendar sidebar sticky → static ── */
+  .events-sidebar {
+    position: static !important;
+    top: auto !important;
+  }
+
+  /* ── Modal ── */
+  .modal {
+    padding: 1.5rem 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  /* ── Toast ── */
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    max-width: none;
+  }
+
+  /* ── Tables ── */
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Overflow safety ── */
+  body {
+    overflow-x: hidden;
+  }
+
+  * {
+    max-width: 100%;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ── Fix hero card image overlay on mobile ── */
+  [style*="position:absolute;bottom:1.25rem"] {
+    position: static !important;
+    margin-top: 1rem;
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: rgba(0,49,120,0.9) !important;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .display-lg {
+    font-size: 2rem;
+  }
+
+  .display-md {
+    font-size: 1.6rem;
+  }
+
+  .display-sm {
+    font-size: 1.3rem;
   }
 
   .grid-4 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+  }
+
+  .nav-logo {
+    font-size: 1.1rem;
+  }
+
+  .section {
+    padding: 2rem 0;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+}
+
+/* ─── Specific fix: repeat(N, 1fr) inline grids ─── */
+@media (max-width: 768px) {
+  /* Admin stats row: 5 columns → 2 columns */
+  [style*="grid-template-columns:repeat(5,1fr)"],
+  [style*="grid-template-columns: repeat(5, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Teacher dashboard stats: 3 columns → 1 */
+  [style*="grid-template-columns:repeat(3,1fr)"],
+  [style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* News archive featured article: side-by-side → stacked */
+  [style*="grid-template-columns:1.2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  /* Faculty profile 2fr/1fr layout */
+  [style*="grid-template-columns:2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+
+  /* Register forms side-by-side fields → stacked */
+  [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Admin stats row: 2 columns → 1 on tiny screens */
+  [style*="grid-template-columns:repeat(5,1fr)"],
+  [style*="grid-template-columns: repeat(5, 1fr)"] {
+    grid-template-columns: 1fr !important;
   }
 }
