@@ -4,9 +4,13 @@
 const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
 
 // Use relative URLs to work on any server (local or deployed)
-const API = '';  // Empty string = same origin
+const API = isLocal
+  ? 'http://localhost:5000'
+  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin
 
-const SERVER = '';  // Empty string = same origin for navigation
+const SERVER = isLocal
+  ? 'http://localhost:5000'
+  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin for navigation
 
 // ─── If opened directly via file://, show message or try localhost ───
 (function () {

@@ -230,6 +230,16 @@
 
             <button class="btn btn-primary btn-full btn-lg mb-3" onclick="showToast('RSVP received!','success')">RSVP Now</button>
             <button class="btn btn-outline btn-full" onclick="showToast('Added to calendar','success')">Add to Calendar</button>
+
+            <!-- Attendance button – shown only to teacher / admin -->
+            <div id="att-btn-wrap" style="display:none;margin-top:0.75rem">
+              <div class="divider mb-3"></div>
+              <a id="att-link" href="#" class="btn btn-full"
+                style="background:rgba(103,80,164,.15);border:1px solid rgba(103,80,164,.4);color:var(--primary);display:flex;align-items:center;justify-content:center;gap:0.5rem;text-decoration:none">
+                <span class="material-symbols-rounded" style="font-size:1.1rem">fact_check</span>
+                Manage Attendance
+              </a>
+            </div>
           </div>
         </div>
 
@@ -364,6 +374,18 @@
     }
 
     loadEvent();
+
+    // Show attendance link for teachers / admins
+    // Must run after DOMContentLoaded so the token is available in localStorage
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const user = await apiFetch('/api/auth/me');
+        if (user && ['admin','teacher'].includes(user.role) && id) {
+          document.getElementById('att-btn-wrap').style.display = 'block';
+          document.getElementById('att-link').href = `attendance.html?id=${id}`;
+        }
+      } catch(e) { /* not logged in — button stays hidden */ }
+    });
   </script>
 </body>
 

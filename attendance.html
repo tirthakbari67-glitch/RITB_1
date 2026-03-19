@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Attendance | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    :root {
+      --att-present: #22c55e;
+      --att-absent:  #ef4444;
+      --att-present-bg: rgba(34,197,94,.12);
+      --att-absent-bg:  rgba(239,68,68,.12);
+      --att-neutral-bg: var(--surface-container);
+    }
+
+    /* ── Stat cards ── */
+    .att-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px,1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .att-stat-card {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-card);
+      display: flex; flex-direction: column; gap: .25rem;
+      position: relative; overflow: hidden;
+    }
+    .att-stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .att-stat-card.total::before   { background: var(--primary); }
+    .att-stat-card.present::before { background: var(--att-present); }
+    .att-stat-card.absent::before  { background: var(--att-absent); }
+    .att-stat-num  { font-size: 2.25rem; font-weight: 800; line-height: 1; color: var(--on-surface); }
+    .att-stat-label{ font-size: .75rem; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing:.06em; }
+
+    /* Progress bar */
+    .att-progress-wrap { background: var(--surface-container); border-radius:999px; height:8px; overflow:hidden; margin-bottom:2rem; }
+    .att-progress-bar  { height:100%; border-radius:999px; background: linear-gradient(90deg,var(--att-present),#86efac); transition: width .5s ease; }
+
+    /* Toolbar */
+    .att-toolbar { display:flex; gap:.75rem; align-items:center; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .att-search { flex:1; min-width:200px; padding:.6rem 1rem; border-radius:var(--radius-md); border:1px solid var(--outline-variant); background:var(--surface-container); color:var(--on-surface); font-size:.95rem; }
+    .att-search:focus { outline:none; border-color:var(--primary); }
+    .att-filter-btn { padding:.55rem 1rem; border-radius:var(--radius-md); border:1px solid var(--outline-variant); background:var(--surface-container); color:var(--on-surface); font-size:.875rem; cursor:pointer; transition:all .15s; }
+    .att-filter-btn.active,.att-filter-btn:hover { background:var(--primary-fixed); border-color:var(--primary); color:var(--primary); }
+
+    /* Table */
+    .att-table-card { background:var(--surface-container-lowest); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-card); }
+    .att-table-head { padding:1rem 1.5rem; display:flex; align-items:center; gap:.75rem; border-bottom:1px solid var(--surface-container); background:var(--primary-fixed); }
+    table.att-table { width:100%; border-collapse:collapse; }
+    table.att-table thead th { padding:.75rem 1rem; text-align:left; font-size:.75rem; letter-spacing:.06em; text-transform:uppercase; color:var(--on-surface-variant); border-bottom:1px solid var(--surface-container); }
+    table.att-table tbody tr { border-bottom:1px solid var(--surface-container); transition:background .15s; }
+    table.att-table tbody tr:last-child { border-bottom:none; }
+    table.att-table tbody tr:hover { background:var(--surface-container); }
+    table.att-table td { padding:.75rem 1rem; font-size:.9rem; }
+
+    /* P / A buttons */
+    .pa-group { display:flex; gap:.4rem; }
+    .pa-btn { width:38px; height:38px; border-radius:50%; border:2px solid transparent; font-size:.8rem; font-weight:700; cursor:pointer; transition:all .15s; display:flex; align-items:center; justify-content:center; background:var(--att-neutral-bg); color:var(--on-surface-variant); }
+    .pa-btn:hover { transform:scale(1.1); }
+    .pa-btn.present.active { background:var(--att-present-bg); border-color:var(--att-present); color:var(--att-present); box-shadow:0 0 0 3px rgba(34,197,94,.2); }
+    .pa-btn.absent.active  { background:var(--att-absent-bg);  border-color:var(--att-absent);  color:var(--att-absent);  box-shadow:0 0 0 3px rgba(239,68,68,.2); }
+
+    /* Status badge */
+    .att-badge { display:inline-flex; align-items:center; gap:.3rem; padding:.2rem .65rem; border-radius:999px; font-size:.8rem; font-weight:600; }
+    .att-badge.present { background:var(--att-present-bg); color:var(--att-present); }
+    .att-badge.absent  { background:var(--att-absent-bg);  color:var(--att-absent); }
+    .att-badge-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+    /* Action icon buttons */
+    .row-actions { display:flex; gap:.3rem; justify-content:center; }
+    .icon-btn { width:32px; height:32px; border-radius:var(--radius-md); border:1px solid var(--outline-variant); background:var(--surface-container); color:var(--on-surface-variant); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; font-size:1rem; }
+    .icon-btn:hover { background:var(--primary-fixed); color:var(--primary); border-color:var(--primary); }
+    .icon-btn.del:hover { background:var(--error-container); color:var(--error); border-color:var(--error); }
+
+    /* Mark-all bar */
+    .att-mark-all { display:flex; gap:.5rem; align-items:center; padding:.75rem 1rem; background:var(--surface-container); border-radius:var(--radius-md); margin-bottom:1rem; }
+    .att-mark-all span { font-size:.875rem; color:var(--on-surface-variant); margin-right:auto; }
+
+    /* Modals */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal-box { background:var(--surface-container-lowest); border-radius:var(--radius-lg); padding:2rem; width:100%; max-width:440px; box-shadow:0 24px 64px rgba(0,0,0,.4); animation:slideUp .2s ease; }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .modal-title { font-size:1.1rem; font-weight:700; margin-bottom:1.25rem; display:flex; align-items:center; gap:.5rem; }
+    .field-group { margin-bottom:.9rem; }
+    .field-group label { display:block; font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--on-surface-variant); margin-bottom:.3rem; }
+
+    /* Saving toast */
+    .saving-overlay { display:none; position:fixed; bottom:1.5rem; right:1.5rem; background:var(--primary); color:#fff; border-radius:var(--radius-md); padding:.6rem 1.2rem; font-size:.875rem; font-weight:600; box-shadow:0 4px 16px rgba(0,0,0,.3); z-index:999; align-items:center; gap:.5rem; }
+    .saving-overlay.show { display:flex; }
+
+    /* Empty */
+    .att-empty { text-align:center; padding:3rem 1rem; color:var(--on-surface-variant); }
+    .att-empty span { display:block; font-size:3rem; margin-bottom:.5rem; }
+
+    /* ── Rank badges ── */
+    .rank-badge {
+      display:inline-flex; align-items:center; gap:.25rem;
+      padding:.15rem .55rem; border-radius:999px;
+      font-size:.78rem; font-weight:700;
+    }
+    .rank-badge.r1 { background:rgba(255,215,0,.18); color:#b8860b; border:1px solid rgba(255,215,0,.5); }
+    .rank-badge.r2 { background:rgba(192,192,192,.18); color:#6b6b6b; border:1px solid rgba(192,192,192,.5); }
+    .rank-badge.r3 { background:rgba(205,127,50,.18); color:#a0522d; border:1px solid rgba(205,127,50,.5); }
+
+    /* Rank selector */
+    .rank-group { display:flex; gap:.25rem; align-items:center; flex-wrap:wrap; }
+    .rank-btn {
+      padding:.15rem .45rem; border-radius:999px;
+      border:1px solid var(--outline-variant);
+      background:var(--surface-container);
+      color:var(--on-surface-variant);
+      font-size:.75rem; font-weight:700; cursor:pointer;
+      transition:all .15s;
+    }
+    .rank-btn:hover { border-color:var(--primary); color:var(--primary); }
+    .rank-btn.active.r1 { background:rgba(255,215,0,.18); border-color:#b8860b; color:#b8860b; }
+    .rank-btn.active.r2 { background:rgba(192,192,192,.18); border-color:#6b6b6b; color:#6b6b6b; }
+    .rank-btn.active.r3 { background:rgba(205,127,50,.18); border-color:#a0522d; color:#a0522d; }
+
+    /* Responsive */
+    @media(max-width:640px) {
+      table.att-table thead th:nth-child(3),
+      table.att-table tbody td:nth-child(3),
+      table.att-table thead th:nth-child(4),
+      table.att-table tbody td:nth-child(4) { display:none; }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav" style="background:rgba(26,27,33,0.96);border-bottom-color:rgba(255,255,255,0.1)">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" style="color:#fff">RITB</a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html" style="color:rgba(255,255,255,0.7)">Home</a>
+        <a href="events-calendar.html" style="color:rgba(255,255,255,0.7)">Events</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto;margin-right:1rem;color:#fff">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="page-top" style="background:linear-gradient(135deg,#1a1b21 0%,#12131a 100%);padding:2.5rem 0 1.5rem;border-bottom:1px solid rgba(255,255,255,0.06)">
+    <div class="container">
+      <a id="back-link" href="event-detail.html" style="display:inline-flex;align-items:center;gap:.4rem;color:rgba(255,255,255,0.6);font-size:.875rem;margin-bottom:1rem;text-decoration:none">
+        <span class="material-symbols-rounded" style="font-size:1.1rem">arrow_back</span> Back to event
+      </a>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <span class="material-symbols-rounded" style="font-size:2.5rem;color:var(--tertiary-fixed-dim)">fact_check</span>
+        <div>
+          <h1 class="display-sm font-display" style="color:#fff;margin:0" id="page-event-title">Loading…</h1>
+          <p id="page-event-date" style="color:rgba(255,255,255,0.55);margin:.25rem 0 0;font-size:.9rem"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+
+      <!-- Auth warning -->
+      <div id="auth-warning" style="display:none;background:var(--surface-container-lowest);border-radius:var(--radius-lg);padding:2.5rem;text-align:center;box-shadow:var(--shadow-card)">
+        <span class="material-symbols-rounded" style="font-size:3rem;color:var(--att-absent)">lock</span>
+        <p style="margin:.75rem 0 0;font-size:1.05rem">You must be logged in as a <strong>teacher or admin</strong> to manage attendance.</p>
+        <a href="login.html" class="btn btn-primary" style="margin-top:1.25rem">Sign In</a>
+      </div>
+
+      <!-- Main UI -->
+      <div id="att-ui" style="display:none">
+
+        <!-- Stat cards -->
+        <div class="att-stats">
+          <div class="att-stat-card total">
+            <span class="att-stat-num" id="stat-total">—</span>
+            <span class="att-stat-label">Total Students</span>
+          </div>
+          <div class="att-stat-card present">
+            <span class="att-stat-num" id="stat-present">—</span>
+            <span class="att-stat-label">Present</span>
+          </div>
+          <div class="att-stat-card absent">
+            <span class="att-stat-num" id="stat-absent">—</span>
+            <span class="att-stat-label">Absent</span>
+          </div>
+          <div class="att-stat-card total">
+            <span class="att-stat-num" id="stat-pct">—%</span>
+            <span class="att-stat-label">Attendance Rate</span>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="att-progress-wrap">
+          <div class="att-progress-bar" id="att-progress" style="width:0%"></div>
+        </div>
+
+        <!-- Mark-all bar -->
+        <div class="att-mark-all">
+          <span class="material-symbols-rounded" style="color:var(--primary)">group</span>
+          <span>Mark all as:</span>
+          <button class="btn btn-sm" style="background:var(--att-present-bg);color:var(--att-present);border:none;font-weight:700" onclick="markAll('present')">✓ All Present</button>
+          <button class="btn btn-sm" style="background:var(--att-absent-bg);color:var(--att-absent);border:none;font-weight:700" onclick="markAll('absent')">✗ All Absent</button>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="att-toolbar">
+          <input type="search" class="att-search" placeholder="Search by name, branch or year…" id="search-input" oninput="renderTable()" />
+          <button class="att-filter-btn active" id="filter-all"     onclick="setFilter('all')">All</button>
+          <button class="att-filter-btn"         id="filter-present" onclick="setFilter('present')">Present</button>
+          <button class="att-filter-btn"         id="filter-absent"  onclick="setFilter('absent')">Absent</button>
+          <button class="btn btn-outline btn-sm" onclick="openAddModal()" style="margin-left:auto;display:flex;align-items:center;gap:.4rem">
+            <span class="material-symbols-rounded" style="font-size:1.1rem">person_add</span> Add Student
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="submitAll()" style="display:flex;align-items:center;gap:.4rem">
+            <span class="material-symbols-rounded" style="font-size:1.1rem">save</span> Save All
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="att-table-card">
+          <div class="att-table-head">
+            <span class="material-symbols-rounded text-primary">checklist</span>
+            <h3 class="title-lg" style="margin:0">Attendance Sheet</h3>
+            <span class="chip chip-primary label-sm" id="row-count">0 students</span>
+          </div>
+          <div class="table-wrap">
+            <table class="att-table">
+              <thead>
+                <tr>
+                  <th style="width:38px">#</th>
+                  <th>Student Name</th>
+                  <th>Branch / Program</th>
+                  <th>Year</th>
+                  <th>Status</th>
+                  <th style="width:110px;text-align:center">Mark P/A</th>
+                  <th style="text-align:center">Rank</th>
+                  <th style="width:80px;text-align:center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="att-tbody"></tbody>
+            </table>
+          </div>
+          <div class="att-empty" id="att-empty" style="display:none">
+            <span class="material-symbols-rounded">person_off</span>
+            No students found.
+          </div>
+        </div>
+
+      </div><!-- /att-ui -->
+    </div>
+  </section>
+
+  <!-- ── Add Student Modal ── -->
+  <div class="modal-overlay" id="add-modal" onclick="if(event.target===this)closeAddModal()">
+    <div class="modal-box">
+      <p class="modal-title"><span class="material-symbols-rounded">person_add</span> Add Student</p>
+      <div class="field-group">
+        <label>Student Name *</label>
+        <input id="add-name"   type="text" class="input" placeholder="e.g. Riya Sharma" />
+      </div>
+      <div class="field-group">
+        <label>Branch / Program</label>
+        <input id="add-branch" type="text" class="input" placeholder="e.g. Computer Science" />
+      </div>
+      <div class="field-group">
+        <label>Year</label>
+        <input id="add-year"   type="text" class="input" placeholder="e.g. 2nd Year" />
+      </div>
+      <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+        <button class="btn btn-outline" style="flex:1" onclick="closeAddModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="addStudent()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Edit Student Modal ── -->
+  <div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)closeEditModal()">
+    <div class="modal-box">
+      <p class="modal-title"><span class="material-symbols-rounded">edit</span> Edit Student</p>
+      <input type="hidden" id="edit-id" />
+      <div class="field-group">
+        <label>Student Name *</label>
+        <input id="edit-name"   type="text" class="input" placeholder="Full name" />
+      </div>
+      <div class="field-group">
+        <label>Branch / Program</label>
+        <input id="edit-branch" type="text" class="input" placeholder="e.g. Computer Science" />
+      </div>
+      <div class="field-group">
+        <label>Year</label>
+        <input id="edit-year"   type="text" class="input" placeholder="e.g. 3rd Year" />
+      </div>
+      <div style="display:flex;gap:.75rem;margin-top:1.25rem">
+        <button class="btn btn-outline" style="flex:1" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" onclick="saveEdit()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saving toast -->
+  <div class="saving-overlay" id="saving-toast">
+    <span class="material-symbols-rounded" style="font-size:1.1rem">pending</span> Saving…
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const params   = new URLSearchParams(window.location.search);
+    const EVENT_ID = params.get('id');
+
+    if (EVENT_ID) document.getElementById('back-link').href = `event-detail.html?id=${EVENT_ID}`;
+
+    let attendees   = [];
+    let localStatus = {};
+    let localRank   = {};   // { attId: '1st'|'2nd'|'3rd'|null }
+    let filterMode  = 'all';
+    let pageUser    = null;
+
+    /* ── Boot ── */
+    document.addEventListener('DOMContentLoaded', init);
+
+    async function init() {
+      try {
+        pageUser = await apiFetch('/api/auth/me');
+        if (!pageUser || !['admin','teacher'].includes(pageUser.role)) throw new Error('Unauthorized');
+      } catch {
+        document.getElementById('auth-warning').style.display = 'block';
+        return;
+      }
+      document.getElementById('att-ui').style.display = 'block';
+      await loadEvent();
+      await loadAttendance();
+    }
+
+    async function loadEvent() {
+      if (!EVENT_ID) return;
+      try {
+        const ev = await apiFetch(`/api/events/${EVENT_ID}`);
+        document.title = `Attendance – ${ev.title} | RITB`;
+        document.getElementById('page-event-title').textContent = ev.title;
+        document.getElementById('page-event-date').textContent =
+          `${formatDate(ev.event_date)}  ·  ${formatTime(ev.time_start)} – ${formatTime(ev.time_end)}  ·  ${ev.location || ''}`;
+      } catch(e) { console.error(e); }
+    }
+
+    async function loadAttendance() {
+      if (!EVENT_ID) return;
+      try {
+        attendees = await apiFetch(`/api/events/${EVENT_ID}/attendance`);
+        localStatus = {};
+        localRank   = {};
+        attendees.forEach(a => {
+          localStatus[a.id] = a.status;
+          localRank[a.id]   = a.rank || null;
+        });
+        updateStats();
+        renderTable();
+      } catch(e) {
+        console.error(e);
+        showToast('Failed to load attendance', 'error');
+      }
+    }
+
+    /* ── Stats ── */
+    function updateStats() {
+      const total   = attendees.length;
+      const present = Object.values(localStatus).filter(s => s === 'present').length;
+      const absent  = total - present;
+      const pct     = total ? Math.round((present / total) * 100) : 0;
+      document.getElementById('stat-total').textContent   = total;
+      document.getElementById('stat-present').textContent = present;
+      document.getElementById('stat-absent').textContent  = absent;
+      document.getElementById('stat-pct').textContent     = pct + '%';
+      document.getElementById('att-progress').style.width = pct + '%';
+    }
+
+    /* ── Mark one status (immediate PATCH) ── */
+    async function markOne(attId, status) {
+      localStatus[attId] = status;
+      updateStats();
+      renderTable();
+      try {
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/${attId}`, {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ status })
+        });
+      } catch(e) { showToast('Auto-save failed – use Save All', 'error'); }
+    }
+
+    /* ── Set rank (immediate PATCH) ── */
+    async function setRank(attId, rank) {
+      // Toggle off if same rank clicked
+      const cur = localRank[attId];
+      const newRank = (cur === rank) ? null : rank;
+      localRank[attId] = newRank;
+      renderTable();
+      try {
+        const a = attendees.find(x => x.id === attId);
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/${attId}`, {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ status: localStatus[attId] || 'absent', rank: newRank || '' })
+        });
+      } catch(e) { showToast('Rank save failed', 'error'); }
+    }
+
+    /* ── Mark all ── */
+    function markAll(status) {
+      attendees.forEach(a => { localStatus[a.id] = status; });
+      updateStats();
+      renderTable();
+    }
+
+    /* ── Bulk save ── */
+    async function submitAll() {
+      const records = Object.entries(localStatus).map(([id,status]) => ({ id: parseInt(id), status }));
+      document.getElementById('saving-toast').classList.add('show');
+      try {
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/bulk`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ records })
+        });
+        showToast('Attendance saved ✓', 'success');
+      } catch { showToast('Failed to save', 'error'); }
+      finally { document.getElementById('saving-toast').classList.remove('show'); }
+    }
+
+    /* ── Filter ── */
+    function setFilter(mode) {
+      filterMode = mode;
+      ['all','present','absent'].forEach(f => {
+        document.getElementById(`filter-${f}`).classList.toggle('active', f === mode);
+      });
+      renderTable();
+    }
+
+    /* ── Render ── */
+    function renderTable() {
+      const q = (document.getElementById('search-input').value || '').toLowerCase();
+      const visible = attendees.filter(a => {
+        const match = [(a.student_name||''),(a.student_branch||''),(a.student_year||'')]
+          .some(v => v.toLowerCase().includes(q));
+        if (!match) return false;
+        return filterMode === 'all' || localStatus[a.id] === filterMode;
+      });
+
+      document.getElementById('row-count').textContent = `${visible.length} student${visible.length !== 1 ? 's' : ''}`;
+      const empty = document.getElementById('att-empty');
+
+      if (!visible.length) {
+        empty.style.display = 'block';
+        document.getElementById('att-tbody').innerHTML = '';
+        return;
+      }
+      empty.style.display = 'none';
+
+      document.getElementById('att-tbody').innerHTML = visible.map((a, i) => {
+        const st   = localStatus[a.id] || 'absent';
+        const rank = localRank[a.id] || null;
+        const rankLabel = rank ? `<span class="rank-badge r${rank.charAt(0)}">${rank === '1st' ? '🥇' : rank === '2nd' ? '🥈' : '🥉'} ${rank}</span>` : '<span style="color:var(--on-surface-variant);font-size:.8rem">—</span>';
+        return `
+        <tr>
+          <td class="text-muted text-sm">${i + 1}</td>
+          <td style="font-weight:600">${esc(a.student_name)}</td>
+          <td class="text-muted text-sm">${esc(a.student_branch || '—')}</td>
+          <td class="text-muted text-sm">${esc(a.student_year  || '—')}</td>
+          <td>
+            <span class="att-badge ${st}">
+              <span class="att-badge-dot"></span>
+              ${st.charAt(0).toUpperCase() + st.slice(1)}
+            </span>
+          </td>
+          <td>
+            <div class="pa-group" style="justify-content:center">
+              <button class="pa-btn present ${st==='present'?'active':''}" title="Mark Present"
+                onclick="markOne(${a.id},'present')">P</button>
+              <button class="pa-btn absent  ${st==='absent' ?'active':''}" title="Mark Absent"
+                onclick="markOne(${a.id},'absent')">A</button>
+            </div>
+          </td>
+          <td>
+            <div class="rank-group" style="justify-content:center">
+              <button class="rank-btn r1 ${rank==='1st'?'active':''}" title="1st Rank" onclick="setRank(${a.id},'1st')">🥇 1st</button>
+              <button class="rank-btn r2 ${rank==='2nd'?'active':''}" title="2nd Rank" onclick="setRank(${a.id},'2nd')">🥈 2nd</button>
+              <button class="rank-btn r3 ${rank==='3rd'?'active':''}" title="3rd Rank" onclick="setRank(${a.id},'3rd')">🥉 3rd</button>
+            </div>
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="icon-btn" title="Edit student" onclick="openEditModal(${a.id})">
+                <span class="material-symbols-rounded" style="font-size:.95rem">edit</span>
+              </button>
+              <button class="icon-btn del" title="Remove student" onclick="deleteStudent(${a.id})">
+                <span class="material-symbols-rounded" style="font-size:.95rem">delete</span>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function esc(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    /* ── Add student modal ── */
+    function openAddModal() {
+      document.getElementById('add-name').value = '';
+      document.getElementById('add-branch').value = '';
+      document.getElementById('add-year').value = '';
+      document.getElementById('add-modal').classList.add('open');
+      document.getElementById('add-name').focus();
+    }
+    function closeAddModal() { document.getElementById('add-modal').classList.remove('open'); }
+
+    async function addStudent() {
+      const name   = document.getElementById('add-name').value.trim();
+      const branch = document.getElementById('add-branch').value.trim();
+      const year   = document.getElementById('add-year').value.trim();
+      if (!name) { document.getElementById('add-name').focus(); return; }
+      try {
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/seed`, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ students: [{ name, branch, year }] })
+        });
+        closeAddModal();
+        await loadAttendance();
+        showToast(`${name} added`, 'success');
+      } catch { showToast('Failed to add student', 'error'); }
+    }
+
+    /* ── Edit student modal ── */
+    function openEditModal(attId) {
+      const a = attendees.find(x => x.id === attId);
+      if (!a) return;
+      document.getElementById('edit-id').value     = attId;
+      document.getElementById('edit-name').value   = a.student_name   || '';
+      document.getElementById('edit-branch').value = a.student_branch || '';
+      document.getElementById('edit-year').value   = a.student_year   || '';
+      document.getElementById('edit-modal').classList.add('open');
+      document.getElementById('edit-name').focus();
+    }
+    function closeEditModal() { document.getElementById('edit-modal').classList.remove('open'); }
+
+    async function saveEdit() {
+      const attId  = parseInt(document.getElementById('edit-id').value);
+      const name   = document.getElementById('edit-name').value.trim();
+      const branch = document.getElementById('edit-branch').value.trim();
+      const year   = document.getElementById('edit-year').value.trim();
+      if (!name) { document.getElementById('edit-name').focus(); return; }
+      const a = attendees.find(x => x.id === attId);
+      try {
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/${attId}`, {
+          method: 'PATCH',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            student_name:   name,
+            student_branch: branch,
+            student_year:   year,
+            status: localStatus[attId] || (a ? a.status : 'absent')
+          })
+        });
+        closeEditModal();
+        await loadAttendance();
+        showToast('Student updated', 'success');
+      } catch { showToast('Failed to update', 'error'); }
+    }
+
+    /* ── Delete student ── */
+    async function deleteStudent(attId) {
+      const a = attendees.find(x => x.id === attId);
+      if (!confirm(`Remove "${a ? a.student_name : 'this student'}" from ALL events? This cannot be undone.`)) return;
+      try {
+        await apiFetch(`/api/events/${EVENT_ID}/attendance/${attId}`, { method: 'DELETE' });
+        await loadAttendance();
+        showToast('Student removed from all events', 'success');
+      } catch { showToast('Failed to remove', 'error'); }
+    }
+  </script>
+</body>
+
+</html>

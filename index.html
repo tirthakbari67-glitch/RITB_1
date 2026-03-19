@@ -227,7 +227,18 @@
       // Load events
       try {
         const events = await apiFetch('/api/events');
-        const shown = events.slice(0, 3);
+        
+        // Filter for upcoming events (where end time is in the future)
+        const now = new Date();
+        const upcomingEvents = events.filter(ev => {
+          if (!ev.event_date || !ev.time_end) return true; // keep if data missing
+          const [hours, minutes] = ev.time_end.split(':');
+          const endDateTime = new Date(ev.event_date);
+          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          return endDateTime >= now;
+        });
+        
+        const shown = upcomingEvents.slice(0, 3);
         document.getElementById('events-grid').innerHTML = shown.map(ev => `
       <a href="event-detail.html?id=${ev.id}" class="card" style="display:block">
         <img class="card-img" src="${ev.image_url}" alt="" onerror="imgFallback(this,'event')">

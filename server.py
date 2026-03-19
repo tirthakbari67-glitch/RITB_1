@@ -26,11 +26,12 @@ def not_found(e):
     return send_from_directory(".", path if path != "/" else "index.html")
 
 
-# ─── CORS: allow all Vercel URLs + localhost ───
+# ─── CORS: allow localhost + Vercel + Netlify URLs ───
 allowed_origins = [
     "http://localhost:5000",
     "http://127.0.0.1:5000",
     re.compile(r"^https://[\w\-]+\.vercel\.app$"),
+    re.compile(r"^https://[\w\-]+\.netlify\.app$"),
 ]
 
 CORS(
@@ -735,6 +736,269 @@ def admin_delete_user(uid):
     db.commit()
     db.close()
     return jsonify({"message": "Deleted"})
+
+
+# ─────────────────────────── ATTENDANCE ───────────────────────────
+
+
+@app.route("/api/events/<int:event_id>/attendance", methods=["GET"])
+def get_attendance(event_id):
+    """Return attendance list; auto-seeds from ALL students in the system if empty."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    db = get_db()
+    event = db.execute("SELECT * FROM events WHERE id = ?", (event_id,)).fetchone()
+    if not event:
+        db.close()
+        return jsonify({"error": "Event not found"}), 404
+
+    rows = rows_to_list(db.execute(
+        "SELECT * FROM attendance WHERE event_id = ? ORDER BY student_name ASC", (event_id,)
+    ).fetchall())
+
+    # Auto-seed from the FULL student list if nothing exists yet
+    if not rows:
+        now = datetime.now().isoformat()
+        all_students = rows_to_list(db.execute(
+            "SELECT id, name, program, year FROM users WHERE role = 'student' AND status = 'active' ORDER BY name ASC"
+        ).fetchall())
+        for s in all_students:
+            try:
+                db.execute(
+                    "INSERT OR IGNORE INTO attendance "
+                    "(event_id, user_id, student_name, student_branch, student_year, status, marked_at) "
+                    "VALUES (?,?,?,?,?,?,?)",
+                    (event_id, s["id"], s["name"], s.get("program") or "", s.get("year") or "", "absent", now)
+                )
+            except Exception:
+                pass
+        db.commit()
+        rows = rows_to_list(db.execute(
+            "SELECT * FROM attendance WHERE event_id = ? ORDER BY student_name ASC", (event_id,)
+        ).fetchall())
+
+    db.close()
+    return jsonify(rows)
+
+
+@app.route("/api/events/<int:event_id>/attendance/seed", methods=["POST"])
+def seed_attendance(event_id):
+    """Add a student to ALL events' attendance lists (cross-event sync)."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json or {}
+    students = data.get("students", [])  # [{name, branch, year}]
+    now = datetime.now().isoformat()
+    db = get_db()
+
+    # Get all event IDs so we can sync to all of them
+    all_event_ids = [r[0] for r in db.execute("SELECT id FROM events").fetchall()]
+
+    added_this_event = 0
+    for s in students:
+        name   = (s.get("name")   or "").strip()
+        branch = (s.get("branch") or "").strip()
+        year   = (s.get("year")   or "").strip()
+        if not name:
+            continue
+        # Insert into every event
+        for eid in all_event_ids:
+            try:
+                db.execute(
+                    "INSERT OR IGNORE INTO attendance "
+                    "(event_id, student_name, student_branch, student_year, status, marked_at) "
+                    "VALUES (?,?,?,?,?,?)",
+                    (eid, name, branch, year, "absent", now)
+                )
+                if eid == event_id:
+                    added_this_event += db.execute("SELECT changes()").fetchone()[0]
+            except Exception:
+                pass
+    db.commit()
+    db.close()
+    return jsonify({"message": f"Added student(s) across {len(all_event_ids)} event(s)", "added": added_this_event})
+
+
+@app.route("/api/events/<int:event_id>/attendance/<int:att_id>", methods=["PATCH"])
+def mark_attendance(event_id, att_id):
+    """Update status/rank for this event only; if name/branch/year changed, sync across ALL events."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json or {}
+    now = datetime.now().isoformat()
+    db = get_db()
+
+    row = db.execute("SELECT * FROM attendance WHERE id=? AND event_id=?", (att_id, event_id)).fetchone()
+    if not row:
+        db.close()
+        return jsonify({"error": "Record not found"}), 404
+
+    # ── Status (per-event only) ──
+    new_status = data.get("status", row["status"])
+    if new_status not in ("present", "absent"):
+        db.close()
+        return jsonify({"error": "Status must be 'present' or 'absent'"}), 400
+
+    # ── Rank (per-event only, null clears it) ──
+    valid_ranks = (None, "", "1st", "2nd", "3rd")
+    new_rank = data.get("rank", row["rank"])  # keep existing if not sent
+    if new_rank == "":  # explicit clear
+        new_rank = None
+    if new_rank not in valid_ranks:
+        db.close()
+        return jsonify({"error": "Rank must be 1st, 2nd, 3rd or empty"}), 400
+
+    # ── Student details (sync across ALL events if changed) ──
+    old_name   = row["student_name"] or ""
+    new_name   = (data.get("student_name")   or old_name).strip()
+    new_branch = (data.get("student_branch") or row["student_branch"] or "").strip()
+    new_year   = (data.get("student_year")   or row["student_year"]   or "").strip()
+
+    details_changed = (
+        new_name != old_name or
+        new_branch != (row["student_branch"] or "") or
+        new_year   != (row["student_year"]   or "")
+    )
+
+    # Update this event's record (status + rank + details)
+    db.execute(
+        "UPDATE attendance "
+        "SET status=?, rank=?, student_name=?, student_branch=?, student_year=?, marked_at=? "
+        "WHERE id=? AND event_id=?",
+        (new_status, new_rank, new_name, new_branch, new_year, now, att_id, event_id)
+    )
+
+    # If student details changed, propagate to all OTHER events
+    if details_changed and old_name:
+        db.execute(
+            "UPDATE attendance "
+            "SET student_name=?, student_branch=?, student_year=? "
+            "WHERE student_name=? AND event_id != ?",
+            (new_name, new_branch, new_year, old_name, event_id)
+        )
+
+    db.commit()
+    db.close()
+    return jsonify({"message": "Updated", "status": new_status, "rank": new_rank})
+
+
+@app.route("/api/events/<int:event_id>/attendance/bulk", methods=["POST"])
+def bulk_attendance(event_id):
+    """Submit all attendance at once: [{id, status}, ...]"""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+
+    data = request.json or {}
+    records = data.get("records", [])
+    now = datetime.now().isoformat()
+    db = get_db()
+    for rec in records:
+        att_id = rec.get("id")
+        status = rec.get("status", "absent")
+        if status not in ("present", "absent") or not att_id:
+            continue
+        db.execute(
+            "UPDATE attendance SET status=?, marked_at=? WHERE id=? AND event_id=?",
+            (status, now, att_id, event_id)
+        )
+    db.commit()
+    db.close()
+    return jsonify({"message": "Attendance saved"})
+
+
+@app.route("/api/events/<int:event_id>/attendance/<int:att_id>", methods=["DELETE"])
+def delete_attendance(event_id, att_id):
+    """Remove a student from ALL events' attendance lists (cross-event sync)."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    # Get student name first so we can delete across all events
+    row = db.execute("SELECT student_name FROM attendance WHERE id=? AND event_id=?", (att_id, event_id)).fetchone()
+    if not row:
+        db.close()
+        return jsonify({"error": "Record not found"}), 404
+    student_name = row["student_name"]
+    # Delete from ALL events
+    db.execute("DELETE FROM attendance WHERE student_name=?", (student_name,))
+    db.commit()
+    db.close()
+    return jsonify({"message": f"'{student_name}' removed from all events"})
+
+
+@app.route("/api/events/<int:event_id>/attendance/stats", methods=["GET"])
+def attendance_stats(event_id):
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    total   = db.execute("SELECT COUNT(*) FROM attendance WHERE event_id=?", (event_id,)).fetchone()[0]
+    present = db.execute("SELECT COUNT(*) FROM attendance WHERE event_id=? AND status='present'", (event_id,)).fetchone()[0]
+    absent  = total - present
+    db.close()
+    return jsonify({"total": total, "present": present, "absent": absent})
+
+
+
+# ─────────────────────────── SPOTLIGHT ───────────────────────────
+
+
+@app.route("/api/spotlight", methods=["GET"])
+def get_spotlight():
+    """
+    Return ranked students (rank != null) from events held in the last 30 days.
+    Each entry: { event_id, event_title, event_date, student_name, student_branch,
+                  student_year, rank, status }
+    Ordered: event_date DESC, then rank (1st→2nd→3rd).
+    """
+    cutoff = (datetime.now() - timedelta(days=30)).date().isoformat()
+    db = get_db()
+    rows = rows_to_list(db.execute(
+        """
+        SELECT a.id, a.event_id, a.student_name, a.student_branch, a.student_year,
+               a.rank, a.status,
+               e.title AS event_title, e.event_date, e.location
+        FROM attendance a
+        JOIN events e ON e.id = a.event_id
+        WHERE a.rank IS NOT NULL AND a.rank != ''
+          AND e.event_date >= ?
+        ORDER BY e.event_date DESC,
+                 CASE a.rank WHEN '1st' THEN 1 WHEN '2nd' THEN 2 WHEN '3rd' THEN 3 ELSE 9 END
+        """,
+        (cutoff,)
+    ).fetchall())
+    db.close()
+    return jsonify(rows)
+
+
+@app.route("/api/admin/attendance-overview", methods=["GET"])
+def admin_attendance_overview():
+    """Return all events with attendance counts, for the admin Attendance tab."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    rows = rows_to_list(db.execute(
+        """
+        SELECT e.id, e.title, e.event_date, e.location,
+               COUNT(a.id) AS total_students,
+               SUM(CASE WHEN a.status='present' THEN 1 ELSE 0 END) AS present_count,
+               SUM(CASE WHEN a.rank IS NOT NULL AND a.rank != '' THEN 1 ELSE 0 END) AS ranked_count
+        FROM events e
+        LEFT JOIN attendance a ON a.event_id = e.id
+        GROUP BY e.id
+        ORDER BY e.event_date DESC
+        """
+    ).fetchall())
+    db.close()
+    return jsonify(rows)
 
 
 # ─────────────────────────── UPLOAD ───────────────────────────

@@ -221,8 +221,14 @@
       // Sort and take top 5 upcoming from today onwards if showing all
       let display = events;
       if (events === allEvents) {
-        const now = new Date().toISOString().split('T')[0];
-        display = events.filter(e => e.event_date >= now).slice(0, 5);
+        const now = new Date();
+        display = events.filter(e => {
+          if (!e.event_date || !e.time_end) return true;
+          const [hours, minutes] = e.time_end.split(':');
+          const endDateTime = new Date(e.event_date);
+          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          return endDateTime >= now;
+        }).slice(0, 5);
         document.getElementById('sidebar-title').textContent = 'Upcoming Events';
       }
 

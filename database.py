@@ -77,12 +77,27 @@ def init_db():
         FOREIGN KEY(user_id) REFERENCES users(id)
     )''')
 
+    # Attendance table
+    c.execute('''CREATE TABLE IF NOT EXISTS attendance (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id INTEGER NOT NULL,
+        user_id  INTEGER,
+        student_name TEXT NOT NULL,
+        student_branch TEXT,
+        status   TEXT NOT NULL DEFAULT 'absent',
+        marked_at TEXT,
+        UNIQUE(event_id, student_name),
+        FOREIGN KEY(event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY(user_id)  REFERENCES users(id)  ON DELETE SET NULL
+    )''')
+
     conn.commit()
 
     # -- Migrations: safely add columns that may not exist in older DBs --
     for col, defn in [
         ('registered_students', 'TEXT DEFAULT NULL'),
         ('extra_images', 'TEXT DEFAULT "[]"'),
+        ('attendance_enabled', 'INTEGER DEFAULT 0'),
     ]:
         try:
             c.execute(f'ALTER TABLE events ADD COLUMN {col} {defn}')
@@ -95,6 +110,16 @@ def init_db():
     ]:
         try:
             c.execute(f'ALTER TABLE news ADD COLUMN {col} {defn}')
+            conn.commit()
+        except Exception:
+            pass  # column already exists
+
+    for col, defn in [
+        ('student_year', 'TEXT DEFAULT NULL'),
+        ('rank',         'TEXT DEFAULT NULL'),
+    ]:
+        try:
+            c.execute(f'ALTER TABLE attendance ADD COLUMN {col} {defn}')
             conn.commit()
         except Exception:
             pass  # column already exists

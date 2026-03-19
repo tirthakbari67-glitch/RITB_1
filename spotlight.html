@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Spotlight | RITB</title>
+  <meta name="description" content="Spotlight on top-ranked students from RITB events in the past 30 days.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    /* ── Hero ── */
+    .spotlight-hero {
+      background: linear-gradient(135deg, #0a0f1e 0%, #12131a 50%, #0d1f3c 100%);
+      padding: 4rem 0 3rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight-hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 80% at 50% -10%, rgba(255,180,0,.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ── Podium cards ── */
+    .podium-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr 1fr;
+      gap: 1.25rem;
+      align-items: end;
+      margin-bottom: 3rem;
+      max-width: 860px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    @media (max-width:640px) {
+      .podium-grid { grid-template-columns: 1fr; align-items: unset; max-width:100%; }
+    }
+
+    .podium-card {
+      border-radius: var(--radius-xl);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,.2);
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .podium-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,.3); }
+
+    .podium-card.gold   { background: linear-gradient(145deg, #1a1600, #2a2000); border: 1.5px solid rgba(255,215,0,.35); }
+    .podium-card.silver { background: linear-gradient(145deg, #141414, #1e1e1e); border: 1.5px solid rgba(200,200,200,.25); }
+    .podium-card.bronze { background: linear-gradient(145deg, #160e00, #201200); border: 1.5px solid rgba(205,127,50,.3); }
+
+    .podium-medal { font-size: 3rem; display: block; margin-bottom: .5rem; }
+    .podium-rank  { font-size: .7rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; margin-bottom: .5rem; }
+    .podium-rank.gold   { color: #f0c040; }
+    .podium-rank.silver { color: #c0c0c0; }
+    .podium-rank.bronze { color: #cd7f32; }
+
+    .podium-name  { font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: .25rem; }
+    .podium-sub   { font-size: .8rem; color: rgba(255,255,255,.45); margin-bottom: .75rem; }
+    .podium-event {
+      font-size: .75rem; font-weight: 600; padding: .2rem .65rem;
+      border-radius: 999px; display: inline-block;
+    }
+    .podium-event.gold   { background: rgba(255,215,0,.15); color: #f0c040; }
+    .podium-event.silver { background: rgba(200,200,200,.12); color: #c0c0c0; }
+    .podium-event.bronze { background: rgba(205,127,50,.15); color: #cd7f32; }
+
+    /* ── Event group section ── */
+    .event-group {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-card);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .event-group-header {
+      padding: 1.25rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+      background: var(--primary-fixed);
+      border-bottom: 1px solid var(--surface-container);
+    }
+    .event-group-body { padding: 1rem 1.5rem; }
+    .rank-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: .85rem 0;
+      border-bottom: 1px solid var(--surface-container);
+    }
+    .rank-row:last-child { border-bottom: none; }
+    .rank-medal-sm { font-size: 1.6rem; width: 2rem; text-align: center; flex-shrink: 0; }
+    .rank-row-name { font-weight: 700; color: var(--on-surface); }
+    .rank-row-sub  { font-size: .8rem; color: var(--on-surface-variant); }
+
+    /* ── Empty / loading ── */
+    .spotlight-empty {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--on-surface-variant);
+    }
+    .spotlight-empty .big-icon { font-size: 4rem; display: block; margin-bottom: 1rem; opacity: .5; }
+
+    /* ── Timer bar ── */
+    .refresh-bar {
+      background: var(--surface-container);
+      border-radius: var(--radius-md);
+      padding: .6rem 1.25rem;
+      font-size: .8rem;
+      color: var(--on-surface-variant);
+      display: flex; align-items: center; gap: .5rem;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">RITB</a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html">Home</a>
+        <a href="events-calendar.html">Events</a>
+        <a href="news-archive.html">News</a>
+        <a href="faculty-directory.html">Faculty</a>
+        <a href="spotlight.html" class="active">Spotlight</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="spotlight-hero">
+    <div class="container" style="text-align:center">
+      <span class="material-symbols-rounded" style="font-size:3rem;color:#f0c040;display:block;margin-bottom:.75rem">auto_awesome</span>
+      <h1 class="display-lg font-display" style="color:#fff;margin:0">Student Spotlight</h1>
+      <p style="color:rgba(255,255,255,.5);margin:.75rem 0 0;font-size:1.05rem">
+        Top performers from events in the past 30 days — auto-updated monthly
+      </p>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="container">
+
+      <div class="refresh-bar">
+        <span class="material-symbols-rounded" style="font-size:1.1rem">update</span>
+        <span id="refresh-info">Spotlight updates automatically — showing ranked students from events in the last 30 days.</span>
+      </div>
+
+      <!-- Top-3 Podium (from the most recent ranked event) -->
+      <h2 class="title-xl font-display" style="margin-bottom:1.25rem">🏆 This Month's Top 3</h2>
+      <div id="podium-section"></div>
+
+      <!-- All ranked results grouped by event -->
+      <h2 class="title-xl font-display" style="margin:2.5rem 0 1.25rem">📋 All Ranked Results</h2>
+      <div id="events-section"></div>
+
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      loadAuthState();
+      await loadSpotlight();
+    });
+
+    async function loadSpotlight() {
+      let data = [];
+      try {
+        data = await apiFetch('/api/spotlight');
+      } catch(e) {
+        console.error(e);
+      }
+
+      renderPodium(data);
+      renderEventGroups(data);
+      renderRefreshInfo();
+    }
+
+    /* ── Podium: top-3 from the single most recent event that has any rank ── */
+    function renderPodium(data) {
+      const podiumEl = document.getElementById('podium-section');
+
+      if (!data.length) {
+        podiumEl.innerHTML = `<div class="spotlight-empty">
+          <span class="material-symbols-rounded big-icon">emoji_events</span>
+          <p style="font-size:1.1rem;font-weight:600">No ranked students yet</p>
+          <p style="font-size:.9rem;margin-top:.5rem">Faculty can assign 1st / 2nd / 3rd ranks from the Attendance page after an event.</p>
+        </div>`;
+        return;
+      }
+
+      // Find the most recent event_id that has ranks
+      const latestEventId = data[0].event_id;
+      const top3 = data.filter(d => d.event_id === latestEventId).slice(0, 3);
+
+      const rankConfig = { '1st': { cls:'gold', medal:'🥇', label:'1st Place' }, '2nd': { cls:'silver', medal:'🥈', label:'2nd Place' }, '3rd': { cls:'bronze', medal:'🥉', label:'3rd Place' } };
+      // reorder for podium: 2nd | 1st | 3rd
+      const order = ['2nd','1st','3rd'];
+      const podiumItems = order.map(r => top3.find(x => x.rank === r)).filter(Boolean);
+
+      if (!podiumItems.length) {
+        podiumEl.innerHTML = '';
+        return;
+      }
+
+      podiumEl.innerHTML = `
+        <div class="podium-grid">
+          ${podiumItems.map(s => {
+            const cfg = rankConfig[s.rank] || {};
+            return `
+            <div class="podium-card ${cfg.cls}">
+              <span class="podium-medal">${cfg.medal}</span>
+              <div class="podium-rank ${cfg.cls}">${cfg.label}</div>
+              <div class="podium-name">${esc(s.student_name)}</div>
+              <div class="podium-sub">${esc(s.student_branch || '')}${s.student_year ? ' · ' + esc(s.student_year) : ''}</div>
+              <span class="podium-event ${cfg.cls}">${esc(s.event_title)}</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+    /* ── Event groups: all events with their ranked students ── */
+    function renderEventGroups(data) {
+      const container = document.getElementById('events-section');
+
+      if (!data.length) {
+        container.innerHTML = `<div class="event-group"><div class="event-group-body spotlight-empty">
+          <span class="material-symbols-rounded big-icon">search_off</span>
+          <p>No ranked results in the past 30 days.</p>
+        </div></div>`;
+        return;
+      }
+
+      // Group by event
+      const grouped = {};
+      data.forEach(s => {
+        if (!grouped[s.event_id]) grouped[s.event_id] = { title: s.event_title, date: s.event_date, location: s.location, students: [] };
+        grouped[s.event_id].students.push(s);
+      });
+
+      const medalMap = { '1st':'🥇','2nd':'🥈','3rd':'🥉' };
+      container.innerHTML = Object.values(grouped).map(ev => `
+        <div class="event-group">
+          <div class="event-group-header">
+            <span class="material-symbols-rounded text-primary">event</span>
+            <div>
+              <div style="font-weight:700;color:var(--on-surface)">${esc(ev.title)}</div>
+              <div style="font-size:.8rem;color:var(--on-surface-variant)">${formatDate(ev.date)}${ev.location ? ' · ' + esc(ev.location) : ''}</div>
+            </div>
+          </div>
+          <div class="event-group-body">
+            ${ev.students.map(s => `
+              <div class="rank-row">
+                <span class="rank-medal-sm">${medalMap[s.rank] || s.rank}</span>
+                <div>
+                  <div class="rank-row-name">${esc(s.student_name)}</div>
+                  <div class="rank-row-sub">${[s.student_branch,s.student_year].filter(Boolean).join(' · ') || '—'}</div>
+                </div>
+                <span style="margin-left:auto;font-size:.8rem;color:var(--on-surface-variant);font-weight:600">${s.rank} Place</span>
+              </div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    function renderRefreshInfo() {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      document.getElementById('refresh-info').textContent =
+        `Showing ranked students from events since ${cutoff.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}. Spotlight auto-updates every month.`;
+    }
+
+    function esc(str) {
+      if (!str) return '';
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>

@@ -504,6 +504,25 @@ textarea.form-input {
   margin-top: 0.35rem;
 }
 
+/* Generic input utility (alias) */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--surface-container-highest);
+  border: 1px solid var(--outline-variant);
+  outline: none;
+  border-radius: var(--radius-md);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  transition: all var(--transition);
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 49, 120, 0.2);
+}
+
 /* ─── Section Layout ─── */
 .page-top {
   padding-top: 72px;
