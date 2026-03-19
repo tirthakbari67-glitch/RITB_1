@@ -138,11 +138,23 @@
               <div>
                 <h3 class="display-sm font-display mb-4">About</h3>
                 <p class="body-lg" style="color:var(--on-surface-variant);white-space:pre-wrap" id="f-bio"></p>
+
+                <!-- Stats row: publications + experience -->
+                <div id="f-stats-row" style="display:none;margin-top:2rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+                  <div style="background:var(--primary-fixed);border-radius:var(--radius-lg);padding:1.25rem 2rem;text-align:center;min-width:130px">
+                    <div class="display-sm font-display" style="color:var(--primary)" id="stat-pubs">—</div>
+                    <div class="label-sm text-muted" style="margin-top:.25rem">Publications</div>
+                  </div>
+                  <div style="background:var(--tertiary-fixed);border-radius:var(--radius-lg);padding:1.25rem 2rem;text-align:center;min-width:130px">
+                    <div class="display-sm font-display" style="color:var(--tertiary-container)" id="stat-exp">—</div>
+                    <div class="label-sm text-muted" style="margin-top:.25rem">Years Experience</div>
+                  </div>
+                </div>
               </div>
               <div>
                 <div style="background:var(--surface-container-low);padding:2rem;border-radius:var(--radius-lg)">
-                  <h4 class="title-md mb-4 font-display">Contact & Availability</h4>
-                  <a href="#" class="flex items-center gap-3 text-muted mb-3 hover:text-primary"
+                  <h4 class="title-md mb-4 font-display">Contact &amp; Availability</h4>
+                  <a id="f-email-link" href="#" class="flex items-center gap-3 text-muted mb-3"
                     style="text-decoration:none">
                     <span class="material-symbols-rounded">mail</span>
                     <span id="f-email"></span>
@@ -152,7 +164,7 @@
                     <span>Office Hours: By Appointment</span>
                   </div>
                   <button class="btn btn-outline btn-full mt-6"
-                    onclick="showToast('Meeting request sent','success')">Request Meeting</button>
+                    id="meeting-btn" onclick="requestMeeting()">Request Meeting</button>
                 </div>
               </div>
             </div>
@@ -199,6 +211,23 @@
         document.getElementById('f-dept').textContent = f.department;
         document.getElementById('f-bio').textContent = f.bio;
         document.getElementById('f-email').textContent = f.email;
+        document.getElementById('f-email-link').href = `mailto:${f.email}`;
+
+        // Stats
+        const pubCount = f.total_publications || (f.publications || []).length || null;
+        const expCount = f.experience || null;
+        if (pubCount !== null) {
+          document.getElementById('stat-pubs').textContent = pubCount;
+          document.getElementById('f-stats-row').style.display = 'flex';
+        }
+        if (expCount !== null && expCount > 0) {
+          document.getElementById('stat-exp').textContent = `${expCount}+`;
+          document.getElementById('f-stats-row').style.display = 'flex';
+        }
+
+        // Store faculty info for meeting request
+        window._facultyName  = f.name;
+        window._facultyEmail = f.email;
 
         const areas = (f.research_areas || '').split(',').filter(x => x);
         document.getElementById('f-areas').innerHTML = areas.map(a => `<span class="chip chip-tertiary">${a.trim()}</span>`).join('');
@@ -225,6 +254,15 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
       document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function requestMeeting() {
+      const name  = window._facultyName  || 'Faculty';
+      const email = window._facultyEmail || '';
+      if (!email) { showToast('No email available', 'error'); return; }
+      const subject = encodeURIComponent(`Meeting Request – ${name}`);
+      const body    = encodeURIComponent(`Dear ${name},\n\nI would like to request a meeting with you at your earliest convenience.\n\nPlease let me know a time that works for you.\n\nThank you.`);
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     }
 
     loadProfile();
