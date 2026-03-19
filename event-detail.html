@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Detail | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    /* ─── Photo Gallery / Carousel ─── */
+    .gallery-wrap {
+      position: relative;
+      width: 100%;
+      background: #111;
+      overflow: hidden;
+    }
+
+    .gallery-main {
+      width: 100%;
+      height: 480px;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s ease;
+    }
+
+    .gallery-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: background 0.2s;
+    }
+
+    .gallery-nav:hover { background: rgba(0,0,0,0.75); }
+    .gallery-nav.prev { left: 1rem; }
+    .gallery-nav.next { right: 1rem; }
+
+    .gallery-dots {
+      position: absolute;
+      bottom: 1rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .gallery-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: background 0.2s;
+      border: none;
+    }
+
+    .gallery-dot.active { background: #fff; }
+
+    .gallery-thumbs {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #1a1b21;
+      overflow-x: auto;
+    }
+
+    .gallery-thumb {
+      width: 80px;
+      height: 56px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      opacity: 0.6;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .gallery-thumb.active,
+    .gallery-thumb:hover {
+      opacity: 1;
+      border-color: var(--tertiary-fixed-dim);
+    }
+
+    /* ─── Hero overlay (category + title on top of image) ─── */
+    .event-hero-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 3rem 2rem 1.5rem;
+      pointer-events: none;
+    }
+
+    /* ─── Layout ─── */
+    .event-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    .event-info-box {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-card);
+      position: sticky;
+      top: 88px;
+    }
+
+    @media (max-width: 768px) {
+      .event-layout {
+        grid-template-columns: 1fr;
+      }
+      .event-info-box {
+        position: static;
+        order: -1;
+      }
+      .gallery-main {
+        height: 260px;
+      }
+    }
+
+    /* ─── Students table ─── */
+    .students-section {
+      margin-top: 2.5rem;
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .students-head {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--surface-container);
+      background: var(--primary-fixed);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav" style="background:rgba(26,27,33,0.9);border-bottom-color:rgba(255,255,255,0.1)">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" style="color:#fff">RITB</a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html" style="color:rgba(255,255,255,0.7)">Home</a>
+        <a href="news-archive.html" style="color:rgba(255,255,255,0.7)">News</a>
+        <a href="events-calendar.html" class="active" style="color:#fff;background:rgba(255,255,255,0.1)">Events</a>
+        <a href="faculty-directory.html" style="color:rgba(255,255,255,0.7)">Faculty</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto;margin-right:1rem;color:#fff">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <!-- ══ Photo Gallery ══ -->
+  <div class="gallery-wrap page-top" id="gallery-wrap">
+    <img class="gallery-main" id="gallery-main-img" src="" alt="Event photo" onerror="imgFallback(this,'event')">
+    <div class="event-hero-overlay">
+      <div class="container">
+        <span class="chip chip-tertiary label-sm" id="event-cat" style="margin-bottom:0.75rem;display:inline-flex">Category</span>
+        <h1 class="display-md font-display" id="event-title" style="color:#fff;margin:0;line-height:1.2">Loading…</h1>
+      </div>
+    </div>
+    <!-- Prev / Next arrows (hidden until >1 photo) -->
+    <button class="gallery-nav prev" id="gallery-prev" onclick="galleryGo(-1)" style="display:none">
+      <span class="material-symbols-rounded">chevron_left</span>
+    </button>
+    <button class="gallery-nav next" id="gallery-next" onclick="galleryGo(1)" style="display:none">
+      <span class="material-symbols-rounded">chevron_right</span>
+    </button>
+    <div class="gallery-dots" id="gallery-dots"></div>
+  </div>
+  <!-- Thumbnail strip (hidden until >1 photo) -->
+  <div class="gallery-thumbs" id="gallery-thumbs" style="display:none"></div>
+
+  <!-- ══ Main Content ══ -->
+  <section class="section">
+    <div class="container">
+      <div class="event-layout">
+
+        <!-- Info Sidebar -->
+        <div>
+          <div class="event-info-box">
+            <h3 class="title-lg mb-4">Event Details</h3>
+
+            <div class="flex items-start gap-3 mb-4">
+              <span class="material-symbols-rounded text-primary">calendar_month</span>
+              <div>
+                <div style="font-weight:700" id="event-date"></div>
+                <div class="text-sm text-muted" id="event-time"></div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 mb-4">
+              <span class="material-symbols-rounded text-primary">location_on</span>
+              <div>
+                <div style="font-weight:700">Location</div>
+                <div class="text-sm text-muted" id="event-location"></div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 mb-6">
+              <span class="material-symbols-rounded text-primary">person</span>
+              <div>
+                <div class="text-sm text-muted">Organized by</div>
+                <div style="font-weight:700" id="event-org"></div>
+              </div>
+            </div>
+
+            <div class="divider mb-4"></div>
+
+            <button class="btn btn-primary btn-full btn-lg mb-3" onclick="showToast('RSVP received!','success')">RSVP Now</button>
+            <button class="btn btn-outline btn-full" onclick="showToast('Added to calendar','success')">Add to Calendar</button>
+
+            <!-- Attendance button – shown only to teacher / admin -->
+            <div id="att-btn-wrap" style="display:none;margin-top:0.75rem">
+              <div class="divider mb-3"></div>
+              <a id="att-link" href="#" class="btn btn-full"
+                style="background:rgba(103,80,164,.15);border:1px solid rgba(103,80,164,.4);color:var(--primary);display:flex;align-items:center;justify-content:center;gap:0.5rem;text-decoration:none">
+                <span class="material-symbols-rounded" style="font-size:1.1rem">fact_check</span>
+                Manage Attendance
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description + Students -->
+        <div>
+          <div style="padding-top:0.5rem">
+            <span class="section-tag" style="margin-bottom:1rem;display:inline-block">About the Event</span>
+            <div class="body-lg" id="event-desc" style="white-space:pre-wrap;line-height:1.8;color:var(--on-surface)"></div>
+          </div>
+
+          <!-- Registered Students -->
+          <div class="students-section" id="students-section" style="display:none">
+            <div class="students-head">
+              <span class="material-symbols-rounded text-primary">group</span>
+              <h3 class="title-lg" style="margin:0">Registered Students</h3>
+              <span class="chip chip-primary label-sm" id="students-count">0</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Student Name</th>
+                    <th>Branch / Department</th>
+                  </tr>
+                </thead>
+                <tbody id="students-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+
+    // ─── Gallery state ───
+    let galleryPhotos = [];
+    let galleryCurrent = 0;
+
+    function galleryRender() {
+      if (!galleryPhotos.length) return;
+      const img = document.getElementById('gallery-main-img');
+      img.style.opacity = 0;
+      setTimeout(() => {
+        img.src = galleryPhotos[galleryCurrent];
+        img.onload = () => { img.style.opacity = 1; };
+        img.onerror = () => { img.src = ''; imgFallback(img, 'event'); img.style.opacity = 1; };
+      }, 150);
+
+      // Dots
+      document.querySelectorAll('.gallery-dot').forEach((d, i) => d.classList.toggle('active', i === galleryCurrent));
+      // Thumbs
+      document.querySelectorAll('.gallery-thumb').forEach((t, i) => t.classList.toggle('active', i === galleryCurrent));
+    }
+
+    function galleryGo(dir) {
+      galleryCurrent = (galleryCurrent + dir + galleryPhotos.length) % galleryPhotos.length;
+      galleryRender();
+    }
+
+    function galleryInit(photos) {
+      galleryPhotos = photos.filter(Boolean);
+      if (!galleryPhotos.length) return;
+
+      // Set first image immediately
+      document.getElementById('gallery-main-img').src = galleryPhotos[0];
+
+      if (galleryPhotos.length > 1) {
+        // Show arrows & thumbs
+        document.getElementById('gallery-prev').style.display = 'flex';
+        document.getElementById('gallery-next').style.display = 'flex';
+        document.getElementById('gallery-thumbs').style.display = 'flex';
+
+        // Build dots
+        const dotsEl = document.getElementById('gallery-dots');
+        dotsEl.innerHTML = galleryPhotos.map((_, i) =>
+          `<button class="gallery-dot${i === 0 ? ' active' : ''}" onclick="galleryCurrent=${i};galleryRender()"></button>`
+        ).join('');
+
+        // Build thumbnails
+        const thumbsEl = document.getElementById('gallery-thumbs');
+        thumbsEl.innerHTML = galleryPhotos.map((url, i) =>
+          `<img src="${url}" class="gallery-thumb${i === 0 ? ' active' : ''}" onclick="galleryCurrent=${i};galleryRender()" onerror="imgFallback(this,'event')" alt="Photo ${i+1}">`
+        ).join('');
+      }
+    }
+
+    async function loadEvent() {
+      if (!id) return;
+      try {
+        const ev = await apiFetch(`/api/events/${id}`);
+        document.title = `${ev.title} | RITB`;
+
+        // Build photo list
+        let photos = [];
+        if (ev.image_url) photos.push(ev.image_url);
+        try {
+          const extras = JSON.parse(ev.extra_images || '[]');
+          if (Array.isArray(extras)) photos = photos.concat(extras);
+        } catch {}
+        galleryInit(photos);
+
+        document.getElementById('event-cat').textContent = ev.category;
+        document.getElementById('event-title').textContent = ev.title;
+        document.getElementById('event-date').textContent = formatDate(ev.event_date);
+        document.getElementById('event-time').textContent = `${formatTime(ev.time_start)} – ${formatTime(ev.time_end)}`;
+        document.getElementById('event-location').textContent = ev.location;
+        document.getElementById('event-org').textContent = ev.organizer_name || 'University Faculty';
+        document.getElementById('event-desc').textContent = ev.description;
+
+        // Registered Students
+        try {
+          const students = JSON.parse(ev.registered_students || '[]');
+          if (students.length) {
+            document.getElementById('students-section').style.display = 'block';
+            document.getElementById('students-count').textContent = students.length;
+            document.getElementById('students-tbody').innerHTML = students.map((s, i) => `
+              <tr>
+                <td class="text-muted text-sm">${i + 1}</td>
+                <td style="font-weight:600">${s.name || '—'}</td>
+                <td class="text-muted text-sm">${s.branch || '—'}</td>
+              </tr>`).join('');
+          }
+        } catch {}
+      } catch (e) { console.error(e); }
+    }
+
+    loadEvent();
+
+    // Show attendance link for teachers / admins
+    // Must run after DOMContentLoaded so the token is available in localStorage
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        const user = await apiFetch('/api/auth/me');
+        if (user && ['admin','teacher'].includes(user.role) && id) {
+          document.getElementById('att-btn-wrap').style.display = 'block';
+          document.getElementById('att-link').href = `attendance.html?id=${id}`;
+        }
+      } catch(e) { /* not logged in — button stays hidden */ }
+    });
+  </script>
+</body>
+
+</html>

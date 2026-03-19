@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    body {
+      background: var(--surface-container-low);
+    }
+
+    .admin-bar {
+      background: var(--primary);
+      color: #fff;
+      padding: 0.85rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .admin-logo {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      background: var(--surface-container);
+      padding: 0.5rem;
+      border-radius: var(--radius-lg);
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--on-surface-variant);
+      font-size: 0.9rem;
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+
+    .tab-btn.active {
+      background: var(--surface-container-lowest);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+      animation: fadeUp 0.25s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.2rem 0.65rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-pending {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .badge-active {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .badge-rejected {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      border: none;
+      background: var(--surface-container);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-card {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .stat-num {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Bar -->
+  <header class="admin-bar">
+    <a href="index.html" class="admin-logo">RITB <span style="opacity:0.55;font-weight:400;font-size:0.9rem">/ Admin
+        Portal</span></a>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+      <a href="index.html" class="btn btn-outline"
+        style="border-color:rgba(255,255,255,0.3);color:#fff;padding:0.5rem 1rem">View Site</a>
+      <button class="btn btn-outline" style="border-color:rgba(255,255,255,0.3);color:#fff;padding:0.5rem 1rem"
+        onclick="logout()">Sign Out</button>
+    </div>
+  </header>
+
+  <main style="padding:2rem;max-width:1200px;margin:0 auto">
+
+    <!-- Stats Row -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem" id="stats-row">
+      <div class="stat-card">
+        <div class="text-sm text-muted">Total Users</div>
+        <div class="stat-num text-primary" id="st-users">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-sm text-muted" style="color:#e65100">Pending Teachers</div>
+        <div class="stat-num" style="color:#e65100" id="st-pending">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-sm text-muted">News Articles</div>
+        <div class="stat-num" id="st-news">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-sm text-muted">Events</div>
+        <div class="stat-num" id="st-events">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-sm text-muted">Faculty Profiles</div>
+        <div class="stat-num" id="st-faculty">–</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('approvals')">🔔 Approvals <span id="badge-count"
+          style="background:#e65100;color:#fff;padding:0 6px;border-radius:100px;font-size:0.7rem;margin-left:4px"></span></button>
+      <button class="tab-btn" onclick="switchTab('users')">👥 Users</button>
+      <button class="tab-btn" onclick="switchTab('news')">📰 News</button>
+      <button class="tab-btn" onclick="switchTab('events')">📅 Events</button>
+      <button class="tab-btn" onclick="switchTab('faculty')">🎓 Faculty</button>
+    </div>
+
+    <!-- APPROVALS -->
+    <div id="tab-approvals" class="tab-panel active">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 class="display-sm font-display">Pending Teacher Approvals</h2>
+      </div>
+      <div class="card" style="padding:1.5rem">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Applied</th>
+                <th style="text-align:right">Decision</th>
+              </tr>
+            </thead>
+            <tbody id="approvals-tbody">
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div id="tab-users" class="tab-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 class="display-sm font-display">All Users</h2>
+      </div>
+      <div class="card" style="padding:1.5rem">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name / Email</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- NEWS -->
+    <div id="tab-news" class="tab-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 class="display-sm font-display">News Articles</h2>
+        <button class="btn btn-primary btn-pill" onclick="openNewsModal()"><span
+            class="material-symbols-rounded">add</span> Add Article</button>
+      </div>
+      <div class="card" style="padding:1.5rem">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Published</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="news-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS -->
+    <div id="tab-events" class="tab-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 class="display-sm font-display">Events</h2>
+        <button class="btn btn-primary btn-pill" onclick="openEventModal()"><span
+            class="material-symbols-rounded">add</span> Add Event</button>
+      </div>
+      <div class="card" style="padding:1.5rem">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Location</th>
+                <th>Organizer</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="events-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- FACULTY -->
+    <div id="tab-faculty" class="tab-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+        <h2 class="display-sm font-display">Faculty Profiles</h2>
+        <button class="btn btn-primary btn-pill" onclick="openFacultyModal()"><span
+            class="material-symbols-rounded">add</span> Add Faculty</button>
+      </div>
+      <div class="card" style="padding:1.5rem">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Department</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="faculty-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════ MODALS ═══════════════ -->
+
+  <!-- News Modal -->
+  <div class="modal-backdrop" id="news-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('news-modal')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-4" id="news-modal-title">Add News Article</h3>
+      <input type="hidden" id="news-edit-id">
+      <div class="form-group"><label class="form-label">Title *</label><input id="n-title" type="text"
+          class="form-input" required></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select id="n-cat" class="form-select">
+          <option value="Academics">Academics</option>
+          <option value="Research">Research</option>
+          <option value="Athletics">Athletics</option>
+          <option value="Social">Social</option>
+          <option value="Arts">Arts</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Excerpt</label><textarea id="n-excerpt" class="form-input"
+          rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Content (HTML allowed)</label><textarea id="n-content"
+          class="form-input" rows="6"></textarea></div>
+      <div class="form-group"><label class="form-label">Image URL</label><input id="n-img" type="url"
+          class="form-input"></div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-primary" onclick="saveNews()">Save Article</button>
+        <button class="btn btn-secondary" onclick="closeModal('news-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Modal -->
+  <div class="modal-backdrop" id="event-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('event-modal')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-4" id="event-modal-title">Add Event</h3>
+      <input type="hidden" id="event-edit-id">
+      <div class="form-group"><label class="form-label">Title *</label><input id="ev-title" type="text"
+          class="form-input" required></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select id="ev-cat" class="form-select">
+          <option value="Academic">Academic</option>
+          <option value="Athletics">Athletics</option>
+          <option value="Social">Social</option>
+          <option value="Career">Career</option>
+          <option value="Research">Research</option>
+          <option value="Arts">Arts</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group"><label class="form-label">Date *</label><input id="ev-date" type="date"
+            class="form-input" required></div>
+        <div class="form-group"><label class="form-label">Location *</label><input id="ev-loc" type="text"
+            class="form-input" required></div>
+        <div class="form-group"><label class="form-label">Start Time</label><input id="ev-start" type="time"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input id="ev-end" type="time"
+            class="form-input"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="ev-desc" class="form-input"
+          rows="4"></textarea></div>
+      <div class="form-group"><label class="form-label">Image URL</label><input id="ev-img" type="url"
+          class="form-input"></div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-primary" onclick="saveEvent()">Save Event</button>
+        <button class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Faculty Modal -->
+  <div class="modal-backdrop" id="faculty-modal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('faculty-modal')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-4" id="fac-modal-title">Add / Edit Faculty</h3>
+      <input type="hidden" id="fac-edit-id">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group"><label class="form-label">Full Name *</label><input id="f-name" type="text"
+            class="form-input" required></div>
+        <div class="form-group"><label class="form-label">Title</label>
+          <select id="f-title" class="form-select">
+            <option>Assistant Professor</option>
+            <option>Associate Professor</option>
+            <option>Full Professor</option>
+            <option>Professor Emeritus</option>
+            <option>Visiting Professor</option>
+            <option>Lecturer</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Department</label><input id="f-dept" type="text"
+          class="form-input"></div>
+      <div class="form-group"><label class="form-label">Email</label><input id="f-email" type="email"
+          class="form-input"></div>
+      <div class="form-group"><label class="form-label">Research Areas (comma-separated)</label><input id="f-research"
+          type="text" class="form-input"></div>
+      <div class="form-group"><label class="form-label">Bio</label><textarea id="f-bio" class="form-input"
+          rows="4"></textarea></div>
+      <div class="form-group"><label class="form-label">Photo URL</label><input id="f-photo" type="url"
+          class="form-input"></div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-primary" onclick="saveFaculty()">Save Profile</button>
+        <button class="btn btn-secondary" onclick="closeModal('faculty-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // ─── Auth guard ───
+    async function initAdmin() {
+      await loadAuthState();
+      if (!currentUser || currentUser.role !== 'admin') {
+        goTo('login.html');
+        return;
+      }
+      loadAll();
+    }
+
+    async function loadAll() {
+      await Promise.all([loadStats(), loadApprovals(), loadUsers(), loadNews(), loadEvents(), loadFaculty()]);
+    }
+
+    // ─── Stats ───
+    async function loadStats() {
+      try {
+        const s = await apiFetch('/api/admin/stats');
+        document.getElementById('st-users').textContent = s.total_users;
+        document.getElementById('st-pending').textContent = s.pending_approvals;
+        document.getElementById('st-news').textContent = s.total_news;
+        document.getElementById('st-events').textContent = s.total_events;
+        document.getElementById('st-faculty').textContent = s.total_faculty;
+        if (s.pending_approvals > 0) document.getElementById('badge-count').textContent = s.pending_approvals;
+        else document.getElementById('badge-count').textContent = '';
+      } catch (e) { console.error(e); }
+    }
+
+    // ─── Approvals ───
+    async function loadApprovals() {
+      try {
+        const users = await apiFetch('/api/admin/users');
+        const pending = users.filter(u => u.status === 'pending' && u.role === 'teacher');
+        const tbody = document.getElementById('approvals-tbody');
+        if (pending.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4" style="padding:2rem">✅ No pending teacher approvals.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = pending.map(u => `
+      <tr>
+        <td class="font-weight-bold" style="color:var(--on-surface)">${u.name}</td>
+        <td class="text-muted">${u.email}</td>
+        <td class="text-muted text-sm" id="dept-${u.id}">Loading...</td>
+        <td class="text-muted text-sm">${formatDateShort(u.created_at)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32;margin-right:0.5rem" onclick="decideTeacher(${u.id},'active',this)">
+            ✓ Approve
+          </button>
+          <button class="btn btn-sm" style="background:#ffebee;color:#c62828;" onclick="decideTeacher(${u.id},'rejected',this)">
+            ✗ Reject
+          </button>
+        </td>
+      </tr>`).join('');
+
+        // load faculty dept for each pending teacher
+        const faculty = await apiFetch('/api/faculty');
+        pending.forEach(u => {
+          const fac = faculty.find(f => f.user_id === u.id || f.email === u.email);
+          const cell = document.getElementById(`dept-${u.id}`);
+          if (cell) cell.textContent = fac ? fac.department : '–';
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    async function decideTeacher(uid, status, btn) {
+      try {
+        btn.disabled = true;
+        await apiFetch(`/api/admin/users/${uid}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+        showToast(status === 'active' ? 'Teacher approved! They can now log in.' : 'Teacher rejected.', status === 'active' ? 'success' : 'error');
+        loadAll();
+      } catch (e) { showToast(e.message, 'error'); btn.disabled = false; }
+    }
+
+    // ─── Users ───
+    async function loadUsers() {
+      try {
+        const users = await apiFetch('/api/admin/users');
+        document.getElementById('users-tbody').innerHTML = users.map(u => `
+      <tr>
+        <td>
+          <div class="font-weight-bold" style="color:var(--on-surface)">${u.name}</div>
+          <div class="text-muted text-sm">${u.email}</div>
+        </td>
+        <td><span class="chip ${u.role === 'admin' ? 'chip-danger' : u.role === 'teacher' ? 'chip-tertiary' : 'chip-primary'} label-sm" style="padding:0.15rem 0.5rem;font-size:0.65rem">${u.role}</span></td>
+        <td><span class="status-badge ${u.status === 'active' ? 'badge-active' : u.status === 'pending' ? 'badge-pending' : 'badge-rejected'}">${u.status}</span></td>
+        <td class="text-muted text-sm">${formatDateShort(u.created_at)}</td>
+        <td style="text-align:right">
+          ${u.status === 'pending' ? `<button class="btn btn-sm" style="background:#e8f5e9;color:#2e7d32;margin-right:0.5rem;padding:0.25rem 0.6rem" onclick="decideTeacher(${u.id},'active',this)">Approve</button>` : ''}
+          ${u.role !== 'admin' ? `<button class="btn btn-secondary btn-sm" onclick="deleteUser(${u.id})"><span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span></button>` : ''}
+        </td>
+      </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    async function deleteUser(id) {
+      if (!confirm('Permanently delete this user?')) return;
+      try {
+        await apiFetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+        showToast('User deleted', 'success');
+        loadAll();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── News ───
+    async function loadNews() {
+      try {
+        const articles = await apiFetch('/api/news');
+        document.getElementById('news-tbody').innerHTML = articles.map(a => `
+      <tr>
+        <td class="font-weight-bold"><a href="news-detail.html?id=${a.id}" class="text-primary" style="text-decoration:none" target="_blank">${a.title}</a></td>
+        <td><span class="chip chip-primary label-sm" style="padding:0.15rem 0.5rem;font-size:0.65rem">${a.category}</span></td>
+        <td class="text-muted text-sm">${a.author_name || '–'}</td>
+        <td class="text-muted text-sm">${formatDateShort(a.published_at)}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary btn-sm" style="margin-right:0.4rem" onclick="editNews(${JSON.stringify(a).replace(/"/g, '&quot;')})"><span class="material-symbols-rounded" style="font-size:1rem">edit</span></button>
+          <button class="btn btn-secondary btn-sm" onclick="delNews(${a.id})"><span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span></button>
+        </td>
+      </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    function openNewsModal(clear = true) {
+      if (clear) { document.getElementById('news-edit-id').value = ''; document.getElementById('news-modal-title').textContent = 'Add News Article';['n-title', 'n-excerpt', 'n-content', 'n-img'].forEach(id => document.getElementById(id).value = ''); }
+      document.getElementById('news-modal').classList.add('open');
+    }
+    function editNews(a) {
+      document.getElementById('news-edit-id').value = a.id;
+      document.getElementById('news-modal-title').textContent = 'Edit News Article';
+      document.getElementById('n-title').value = a.title;
+      document.getElementById('n-cat').value = a.category;
+      document.getElementById('n-excerpt').value = a.excerpt || '';
+      document.getElementById('n-content').value = a.content || '';
+      document.getElementById('n-img').value = a.image_url || '';
+      document.getElementById('news-modal').classList.add('open');
+    }
+    async function saveNews() {
+      const id = document.getElementById('news-edit-id').value;
+      const body = { title: document.getElementById('n-title').value, category: document.getElementById('n-cat').value, excerpt: document.getElementById('n-excerpt').value, content: document.getElementById('n-content').value, image_url: document.getElementById('n-img').value };
+      try {
+        if (id) await apiFetch(`/api/news/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        else await apiFetch('/api/news', { method: 'POST', body: JSON.stringify(body) });
+        showToast(id ? 'Article updated!' : 'Article created!', 'success');
+        closeModal('news-modal');
+        loadAll();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+    async function delNews(id) {
+      if (!confirm('Delete this article?')) return;
+      try { await apiFetch(`/api/news/${id}`, { method: 'DELETE' }); showToast('Deleted', 'success'); loadAll(); }
+      catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Events ───
+    async function loadEvents() {
+      try {
+        const events = await apiFetch('/api/events');
+        document.getElementById('events-tbody').innerHTML = events.map(e => `
+      <tr>
+        <td class="font-weight-bold"><a href="event-detail.html?id=${e.id}" class="text-primary" style="text-decoration:none" target="_blank">${e.title}</a></td>
+        <td class="text-muted text-sm">${formatDateShort(e.event_date)}</td>
+        <td class="text-muted text-sm">${e.location}</td>
+        <td class="text-muted text-sm">${e.organizer_name || '–'}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary btn-sm" style="margin-right:0.4rem" onclick="editEvent(${JSON.stringify(e).replace(/"/g, '&quot;')})"><span class="material-symbols-rounded" style="font-size:1rem">edit</span></button>
+          <button class="btn btn-secondary btn-sm" onclick="delEvent(${e.id})"><span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span></button>
+        </td>
+      </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    function openEventModal(clear = true) {
+      if (clear) { document.getElementById('event-edit-id').value = ''; document.getElementById('event-modal-title').textContent = 'Add Event';['ev-title', 'ev-date', 'ev-loc', 'ev-start', 'ev-end', 'ev-desc', 'ev-img'].forEach(id => document.getElementById(id).value = ''); }
+      document.getElementById('event-modal').classList.add('open');
+    }
+    function editEvent(e) {
+      document.getElementById('event-edit-id').value = e.id;
+      document.getElementById('event-modal-title').textContent = 'Edit Event';
+      document.getElementById('ev-title').value = e.title;
+      document.getElementById('ev-cat').value = e.category;
+      document.getElementById('ev-date').value = e.event_date;
+      document.getElementById('ev-loc').value = e.location || '';
+      document.getElementById('ev-start').value = e.time_start || '';
+      document.getElementById('ev-end').value = e.time_end || '';
+      document.getElementById('ev-desc').value = e.description || '';
+      document.getElementById('ev-img').value = e.image_url || '';
+      document.getElementById('event-modal').classList.add('open');
+    }
+    async function saveEvent() {
+      const id = document.getElementById('event-edit-id').value;
+      const body = { title: document.getElementById('ev-title').value, category: document.getElementById('ev-cat').value, event_date: document.getElementById('ev-date').value, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: document.getElementById('ev-loc').value, description: document.getElementById('ev-desc').value, image_url: document.getElementById('ev-img').value };
+      try {
+        if (id) await apiFetch(`/api/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        else await apiFetch('/api/events', { method: 'POST', body: JSON.stringify(body) });
+        showToast(id ? 'Event updated!' : 'Event created!', 'success');
+        closeModal('event-modal');
+        loadAll();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+    async function delEvent(id) {
+      if (!confirm('Delete this event?')) return;
+      try { await apiFetch(`/api/events/${id}`, { method: 'DELETE' }); showToast('Deleted', 'success'); loadAll(); }
+      catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Faculty ───
+    async function loadFaculty() {
+      try {
+        const list = await apiFetch('/api/faculty');
+        document.getElementById('faculty-tbody').innerHTML = list.map(f => `
+      <tr>
+        <td class="font-weight-bold" style="color:var(--on-surface)">${f.name}</td>
+        <td class="text-muted text-sm">${f.title || '–'}</td>
+        <td class="text-muted text-sm">${f.department || '–'}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary btn-sm" style="margin-right:0.4rem" onclick="editFaculty(${JSON.stringify(f).replace(/"/g, '&quot;')})"><span class="material-symbols-rounded" style="font-size:1rem">edit</span></button>
+          <button class="btn btn-secondary btn-sm" onclick="delFaculty(${f.id})"><span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span></button>
+        </td>
+      </tr>`).join('');
+      } catch (e) { console.error(e); }
+    }
+
+    function openFacultyModal() {
+      document.getElementById('fac-edit-id').value = '';
+      document.getElementById('fac-modal-title').textContent = 'Add Faculty Profile';
+      ['f-name', 'f-dept', 'f-email', 'f-research', 'f-bio', 'f-photo'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('faculty-modal').classList.add('open');
+    }
+    function editFaculty(f) {
+      document.getElementById('fac-edit-id').value = f.id;
+      document.getElementById('fac-modal-title').textContent = 'Edit Faculty Profile';
+      document.getElementById('f-name').value = f.name || '';
+      document.getElementById('f-title').value = f.title || 'Assistant Professor';
+      document.getElementById('f-dept').value = f.department || '';
+      document.getElementById('f-email').value = f.email || '';
+      document.getElementById('f-research').value = f.research_areas || '';
+      document.getElementById('f-bio').value = f.bio || '';
+      document.getElementById('f-photo').value = f.photo_url || '';
+      document.getElementById('faculty-modal').classList.add('open');
+    }
+    async function saveFaculty() {
+      const id = document.getElementById('fac-edit-id').value;
+      const body = { name: document.getElementById('f-name').value, title: document.getElementById('f-title').value, department: document.getElementById('f-dept').value, email: document.getElementById('f-email').value, research_areas: document.getElementById('f-research').value, bio: document.getElementById('f-bio').value, photo_url: document.getElementById('f-photo').value };
+      try {
+        if (id) await apiFetch(`/api/faculty/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        else await apiFetch('/api/faculty', { method: 'POST', body: JSON.stringify(body) });
+        showToast(id ? 'Profile updated!' : 'Profile created!', 'success');
+        closeModal('faculty-modal');
+        loadAll();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+    async function delFaculty(id) {
+      if (!confirm('Delete this faculty profile?')) return;
+      try { await apiFetch(`/api/faculty/${id}`, { method: 'DELETE' }); showToast('Deleted', 'success'); loadAll(); }
+      catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Tab switcher ───
+    function switchTab(name) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`[onclick="switchTab('${name}')"]`).classList.add('active');
+      document.getElementById(`tab-${name}`).classList.add('active');
+    }
+
+    // ─── Modal helpers ───
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+    initAdmin();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Event | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+
+<body>
+  <div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><a href="index.html">RITB</a></div>
+      <div class="sidebar-label">Portal</div>
+      <div style="display:flex;flex-direction:column;gap:0.25rem">
+        <a href="teacher-dashboard.html" class="sidebar-link">
+          <span class="material-symbols-rounded">dashboard</span> Dashboard
+        </a>
+        <a href="add-event.html" class="sidebar-link active">
+          <span class="material-symbols-rounded">add_circle</span> New Event
+        </a>
+        <a href="events-calendar.html" class="sidebar-link">
+          <span class="material-symbols-rounded">calendar_today</span> Calendar
+        </a>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <div class="container-narrow" style="margin:0;max-width:800px">
+        <h1 class="display-sm font-display mb-2">Curate a New Campus Experience.</h1>
+        <p class="text-muted mb-8">Fill in the details below to broadcast your upcoming event to the RITB community.</p>
+
+        <form id="event-form" class="card" style="padding:2.5rem" onsubmit="submitEvent(event)">
+
+          <h3 class="title-lg mb-4 text-primary">Event Identity</h3>
+          <p class="text-sm text-muted mb-4">The headline and category define how students will discover your
+            initiative.</p>
+
+          <div class="form-group">
+            <label class="form-label">Event Title *</label>
+            <input type="text" id="title" class="form-input" placeholder="e.g. Annual Dean's Lecture: Future of AI"
+              required>
+          </div>
+          <div class="form-group mb-8">
+            <label class="form-label">Category *</label>
+            <select id="category" class="form-select" required>
+              <option value="Academic">Academic</option>
+              <option value="Athletics">Athletics</option>
+              <option value="Social">Social</option>
+              <option value="Career">Career & Professional</option>
+              <option value="Research">Research & Innovation</option>
+              <option value="Arts">Arts & Culture</option>
+              <option value="General">General Campus</option>
+            </select>
+          </div>
+
+          <div class="divider mb-8"></div>
+
+          <h3 class="title-lg mb-4 text-primary">Logistics</h3>
+          <div class="grid-2 gap-4 mb-4">
+            <div class="form-group">
+              <label class="form-label">Date *</label>
+              <input type="date" id="date" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location *</label>
+              <input type="text" id="location" class="form-input" placeholder="Forbes Auditorium" required>
+            </div>
+          </div>
+          <div class="grid-2 gap-4 mb-8">
+            <div class="form-group">
+              <label class="form-label">Start Time *</label>
+              <input type="time" id="time_start" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Time</label>
+              <input type="time" id="time_end" class="form-input">
+            </div>
+          </div>
+
+          <div class="divider mb-8"></div>
+
+          <h3 class="title-lg mb-4 text-primary">Narrative & Visual</h3>
+          <div class="form-group mb-6">
+            <label class="form-label">Description *</label>
+            <textarea id="description" class="form-input"
+              placeholder="Captivate your audience with a compelling description..." required></textarea>
+          </div>
+
+          <div class="form-group mb-8">
+            <label class="form-label">Banner Image URL</label>
+            <input type="url" id="image_url" class="form-input" placeholder="https://images.unsplash.com/...">
+            <p class="form-hint">Provide an immersive, high-quality cover photo url. Recommended: 1600 x 900px</p>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <button type="submit" id="submit-btn" class="btn btn-primary btn-lg">Publish Event</button>
+            <a href="teacher-dashboard.html" class="btn btn-secondary btn-lg">Cancel</a>
+          </div>
+          <div class="form-error hidden mt-3" id="form-error"></div>
+        </form>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    async function initForm() {
+      await loadAuthState();
+      if (!currentUser || currentUser.role !== 'teacher') {
+        window.location.href = 'index.html';
+      }
+    }
+
+    async function submitEvent(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      btn.textContent = 'Publishing...'; btn.disabled = true;
+
+      const body = {
+        title: document.getElementById('title').value,
+        category: document.getElementById('category').value,
+        event_date: document.getElementById('date').value,
+        time_start: document.getElementById('time_start').value,
+        time_end: document.getElementById('time_end').value,
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value,
+        image_url: document.getElementById('image_url').value,
+      };
+
+      try {
+        await apiFetch('/api/events', { method: 'POST', body: JSON.stringify(body) });
+        showToast('Event published successfully!', 'success');
+        document.getElementById('event-form').reset();
+        setTimeout(() => window.location.href = 'teacher-dashboard.html', 1500);
+      } catch (err) {
+        document.getElementById('form-error').textContent = err.message;
+        document.getElementById('form-error').classList.remove('hidden');
+        btn.textContent = 'Publish Event'; btn.disabled = false;
+      }
+    }
+
+    initForm();
+  </script>
+</body>
+
+</html>

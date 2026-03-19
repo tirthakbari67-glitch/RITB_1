@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title> RITB — Campus News & Events</title>
+  <meta name="description"
+    content="Your premium campus news portal: the latest stories, upcoming events, and faculty insights.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+</head>
+
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">RITB</a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html" class="active">Home</a>
+        <a href="news-archive.html">News</a>
+        <a href="events-calendar.html">Events</a>
+        <a href="faculty-directory.html">Faculty</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto; margin-right: 1rem;">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-actions" id="nav-actions">
+        <a href="login.html" class="btn-nav-login">Sign In</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero page-top" id="hero-section">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center">
+        <div>
+          <span class="label-sm" style="color:var(--tertiary-fixed-dim);display:block;margin-bottom:1.25rem">Breaking
+            News</span>
+          <h1 class="display-lg" id="hero-title" style="color:#fff;margin-bottom:1.25rem;line-height:1.1">
+            The New Science Hub: A Vision for 2025
+          </h1>
+          <p class="body-lg" style="color:rgba(255,255,255,0.8);margin-bottom:2rem" id="hero-excerpt">
+            After three years of planning, the university breaks ground on a 120,000 sq-ft interdisciplinary research
+            complex.
+          </p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap">
+            <a href="#" class="btn btn-lg" id="hero-btn"
+              style="background:var(--tertiary-fixed-dim);color:var(--tertiary-container)">Read Full Story</a>
+            <a href="news-archive.html" class="btn btn-lg btn-outline"
+              style="border-color:rgba(255,255,255,0.4);color:#fff">View All News</a>
+          </div>
+        </div>
+        <div style="position:relative">
+          <img id="hero-img" src="https://images.unsplash.com/photo-1562774053-701939374585?w=800" alt="Campus"
+            style="border-radius:var(--radius-xl);width:100%;aspect-ratio:4/3;object-fit:cover;box-shadow:0 24px 80px rgba(0,0,0,0.3)"
+            onerror="imgFallback(this,'news')">
+          <div
+            style="position:absolute;bottom:1.25rem;left:1.25rem;right:1.25rem;background:rgba(0,49,120,0.85);backdrop-filter:blur(8px);border-radius:var(--radius-md);padding:1rem">
+            <span id="hero-cat" class="chip chip-tertiary label-sm" style="margin-bottom:0.5rem">Academics</span>
+            <p style="color:rgba(255,255,255,0.9);font-size:0.875rem;font-weight:600">Published in the RITB Editorial
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Campus Events -->
+  <section class="section" style="background:var(--surface-container-low)">
+    <div class="container">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <span class="section-tag">Happening Now</span>
+          <h2 class="display-sm font-display">Campus Events</h2>
+        </div>
+        <a href="events-calendar.html" class="btn btn-secondary btn-pill">View Calendar</a>
+      </div>
+      <div class="grid-3" id="events-grid">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Editorial Feed -->
+  <section class="section">
+    <div class="container">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <span class="section-tag">Latest Stories</span>
+          <h2 class="display-sm font-display">The Editorial Feed</h2>
+        </div>
+        <a href="news-archive.html" class="btn btn-secondary btn-pill">All Articles</a>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:3rem">
+        <!-- Featured Article -->
+        <div>
+          <div class="card" id="featured-article" style="cursor:pointer">
+            <img class="card-img" id="featured-img" src="" alt="" onerror="imgFallback(this,'news')"
+              style="aspect-ratio:16/9">
+            <div class="card-body">
+              <div class="card-meta">
+                <span class="chip chip-primary label-sm" id="featured-cat">Academics</span>
+                <span class="text-muted text-sm" id="featured-date"></span>
+              </div>
+              <h3 class="headline-lg font-display mb-3" id="featured-title"></h3>
+              <p class="body-md text-muted mb-4" id="featured-excerpt"></p>
+              <span class="label-md text-muted" id="featured-author"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Secondary Articles -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem" id="secondary-articles">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- More Articles Grid -->
+      <div class="grid-3 mt-8" id="more-articles">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-logo">RITB</div>
+          <p class="footer-desc">Keeping our community informed and inspired through premier academic journalism and
+            event curation.</p>
+        </div>
+        <div>
+          <div class="footer-heading">Quick Links</div>
+          <ul>
+            <li><a href="news-archive.html">News Archive</a></li>
+            <li><a href="events-calendar.html">Events Calendar</a></li>
+            <li><a href="faculty-directory.html">Faculty Directory</a></li>
+            <li><a href="login.html">Faculty Portal</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-heading">Connect</div>
+          <ul>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Newsletter</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-heading">Portal</div>
+          <ul>
+            <li><a href="login.html">Student Login</a></li>
+            <li><a href="login.html">Faculty Login</a></li>
+            <li><a href="admin.html">Admin</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">© 2024 RITB. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    async function loadHomePage() {
+      // Load hero from top news
+      try {
+        const news = await apiFetch('/api/news');
+        if (news.length > 0) {
+          const top = news[0];
+          document.getElementById('hero-title').textContent = top.title;
+          document.getElementById('hero-excerpt').textContent = top.excerpt || '';
+          document.getElementById('hero-img').src = top.image_url || '';
+          document.getElementById('hero-cat').textContent = top.category;
+          document.getElementById('hero-btn').href = `news-detail.html?id=${top.id}`;
+        }
+
+        // Featured
+        if (news.length > 1) {
+          const f = news[1];
+          document.getElementById('featured-img').src = f.image_url || '';
+          document.getElementById('featured-cat').textContent = f.category;
+          document.getElementById('featured-date').textContent = timeAgo(f.published_at);
+          document.getElementById('featured-title').textContent = f.title;
+          document.getElementById('featured-excerpt').textContent = f.excerpt || '';
+          document.getElementById('featured-author').textContent = f.author_name ? `By ${f.author_name}` : '';
+          document.getElementById('featured-article').onclick = () => window.location.href = `news-detail.html?id=${f.id}`;
+        }
+
+        // Secondary articles
+        const secondary = news.slice(2, 5);
+        document.getElementById('secondary-articles').innerHTML = secondary.map(a => `
+      <a href="news-detail.html?id=${a.id}" style="display:flex;gap:1rem;align-items:flex-start;text-decoration:none;padding:1rem;border-radius:var(--radius-md);background:var(--surface-container-lowest);transition:all var(--transition)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+        <img src="${a.image_url || ''}" alt="" style="width:80px;height:60px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0" onerror="imgFallback(this,'news')">
+        <div>
+          <span class="chip ${getCategoryColor(a.category)} label-sm" style="margin-bottom:0.25rem">${a.category}</span>
+          <h4 style="font-family:var(--font-display);font-size:1rem;line-height:1.35;margin-bottom:0.25rem;color:var(--on-surface)">${a.title}</h4>
+          <span class="text-muted" style="font-size:0.8rem">${timeAgo(a.published_at)}</span>
+        </div>
+      </a>`).join('');
+
+        // More articles grid
+        const more = news.slice(5, 8);
+        document.getElementById('more-articles').innerHTML = more.map(a => `
+      <a href="news-detail.html?id=${a.id}" class="card" style="display:block">
+        <img class="card-img" src="${a.image_url}" alt="" onerror="imgFallback(this,'news')">
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="chip ${getCategoryColor(a.category)} label-sm">${a.category}</span>
+            <span class="text-muted text-sm">${timeAgo(a.published_at)}</span>
+          </div>
+          <h4 class="headline-md font-display mb-2">${a.title}</h4>
+          <p class="text-muted body-md" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${a.excerpt || ''}</p>
+        </div>
+      </a>`).join('');
+      } catch (e) {
+        console.error('Failed to load news:', e);
+      }
+
+      // Load events
+      try {
+        const events = await apiFetch('/api/events');
+        
+        // Filter for upcoming events (where end time is in the future)
+        const now = new Date();
+        const upcomingEvents = events.filter(ev => {
+          if (!ev.event_date || !ev.time_end) return true; // keep if data missing
+          const [hours, minutes] = ev.time_end.split(':');
+          const endDateTime = new Date(ev.event_date);
+          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          return endDateTime >= now;
+        });
+        
+        const shown = upcomingEvents.slice(0, 3);
+        document.getElementById('events-grid').innerHTML = shown.map(ev => `
+      <a href="event-detail.html?id=${ev.id}" class="card" style="display:block">
+        <img class="card-img" src="${ev.image_url}" alt="" onerror="imgFallback(this,'event')">
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="chip ${getCategoryColor(ev.category)}">${ev.category}</span>
+          </div>
+          <h3 class="headline-md font-display mb-2">${ev.title}</h3>
+          <div style="display:flex;flex-direction:column;gap:0.35rem">
+            <div class="flex items-center gap-2 text-muted text-sm">
+              <span class="material-symbols-rounded" style="font-size:1rem">calendar_today</span>
+              ${formatDate(ev.event_date)}
+            </div>
+            <div class="flex items-center gap-2 text-muted text-sm">
+              <span class="material-symbols-rounded" style="font-size:1rem">schedule</span>
+              ${formatTime(ev.time_start)} – ${formatTime(ev.time_end)}
+            </div>
+            <div class="flex items-center gap-2 text-muted text-sm">
+              <span class="material-symbols-rounded" style="font-size:1rem">location_on</span>
+              ${ev.location || 'TBD'}
+            </div>
+          </div>
+        </div>
+      </a>`).join('');
+      } catch (e) {
+        console.error('Failed to load events:', e);
+      }
+    }
+
+    loadHomePage();
+  </script>
+</body>
+
+</html>

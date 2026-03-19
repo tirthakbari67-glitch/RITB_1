@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Article | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    .article-body h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .article-body p {
+      margin-bottom: 1.25rem;
+      color: var(--on-surface-variant);
+      line-height: 1.8;
+      font-size: 1.0625rem;
+    }
+
+    .article-body strong {
+      color: var(--on-surface);
+    }
+
+    .article-body em {
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">RITB</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="news-archive.html" class="active">News</a>
+        <a href="events-calendar.html">Events</a>
+        <a href="faculty-directory.html">Faculty</a>
+      </div>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <div class="page-top">
+    <!-- Loading state -->
+    <div id="loading" style="padding:6rem 0;text-align:center">
+      <div class="skeleton" style="width:100%;height:400px;border-radius:0;margin-bottom:2rem"></div>
+      <div class="container-narrow">
+        <div class="skeleton" style="height:2rem;width:60%;margin:0 auto 1rem"></div>
+        <div class="skeleton" style="height:1rem;width:80%;margin:0 auto"></div>
+      </div>
+    </div>
+
+    <!-- Article Content -->
+    <div id="article-content" class="hidden">
+      <!-- Hero Image -->
+      <div id="article-hero" style="height:480px;background:var(--surface-container);overflow:hidden">
+        <img id="article-img" src="" alt="" style="width:100%;height:100%;object-fit:cover"
+          onerror="imgFallback(this,'news')">
+      </div>
+
+      <!-- Article Body -->
+      <div class="section-sm">
+        <div class="container-narrow">
+          <!-- Breadcrumb -->
+          <div class="flex items-center gap-2 mb-6 text-sm text-muted">
+            <a href="index.html" class="text-primary">Home</a>
+            <span>›</span>
+            <a href="news-archive.html" class="text-primary">News</a>
+            <span>›</span>
+            <span id="article-cat-bc">Article</span>
+          </div>
+
+          <!-- Meta -->
+          <div class="flex flex-wrap gap-3 items-center mb-4">
+            <span class="chip chip-primary label-sm" id="article-cat">Category</span>
+            <span class="text-muted text-sm" id="article-date"></span>
+            <span class="text-muted text-sm" id="article-author"></span>
+          </div>
+
+          <!-- Title -->
+          <h1 class="display-md font-display" id="article-title" style="margin-bottom:1.5rem;line-height:1.15"></h1>
+
+          <!-- Excerpt -->
+          <p class="body-lg text-primary" id="article-excerpt"
+            style="font-size:1.125rem;font-weight:500;margin-bottom:2rem;font-family:var(--font-display);font-style:italic">
+          </p>
+
+          <div style="height:2px;background:linear-gradient(to right,var(--primary),transparent);margin-bottom:2rem">
+          </div>
+
+          <!-- Content -->
+          <div class="article-body body-lg" id="article-body"></div>
+
+          <!-- Back + Share -->
+          <div
+            style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--surface-container);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+            <a href="news-archive.html" class="btn btn-secondary btn-pill">
+              <span class="material-symbols-rounded" style="font-size:1rem">arrow_back</span>
+              Back to Archive
+            </a>
+            <div class="flex gap-2">
+              <button class="btn btn-outline btn-sm btn-pill" onclick="copyLink()">
+                <span class="material-symbols-rounded" style="font-size:1rem">share</span>
+                Share Article
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state hidden" id="not-found">
+      <span class="material-symbols-rounded">article</span>
+      <p class="title-md">Article not found</p>
+      <a href="news-archive.html" class="btn btn-primary mt-4">Back to Archive</a>
+    </div>
+  </div>
+
+  <footer class="footer" style="margin-top:2rem">
+    <div class="container">
+      <div class="footer-bottom">© 2024 RITB. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const newsId = params.get('id');
+
+    async function loadArticle() {
+      if (!newsId) { showNotFound(); return; }
+      try {
+        const a = await apiFetch(`/api/news/${newsId}`);
+        document.title = `${a.title} | RITB`;
+        document.getElementById('article-img').src = a.image_url || '';
+        document.getElementById('article-cat').textContent = a.category;
+        document.getElementById('article-cat-bc').textContent = a.category;
+        document.getElementById('article-date').textContent = formatDate(a.published_at);
+        document.getElementById('article-author').textContent = a.author_name ? `By ${a.author_name}` : '';
+        document.getElementById('article-title').textContent = a.title;
+        document.getElementById('article-excerpt').textContent = a.excerpt || '';
+        document.getElementById('article-body').innerHTML = a.content || '';
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('article-content').classList.remove('hidden');
+      } catch { showNotFound(); }
+    }
+
+    function showNotFound() {
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('not-found').classList.remove('hidden');
+    }
+
+    function copyLink() {
+      navigator.clipboard.writeText(window.location.href);
+      showToast('Link copied!', 'success');
+    }
+
+    loadArticle();
+  </script>
+</body>
+
+</html>

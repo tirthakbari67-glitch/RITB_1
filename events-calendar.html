@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Events Calendar | RITB</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+  <style>
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--surface-container);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--surface-container);
+    }
+
+    .cal-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      padding: 1rem 0;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--on-surface-variant);
+    }
+
+    .cal-day {
+      background: var(--surface-container-lowest);
+      aspect-ratio: 1;
+      padding: 0.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .cal-day:hover {
+      background: var(--surface-container-low);
+    }
+
+    .cal-day.empty {
+      background: var(--surface);
+      cursor: default;
+    }
+
+    .cal-date {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--on-surface);
+      margin-bottom: 0.5rem;
+      display: inline-block;
+      width: 2rem;
+      height: 2rem;
+      line-height: 2rem;
+      text-align: center;
+      border-radius: 50%;
+    }
+
+    .cal-day.today .cal-date {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .cal-event-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--tertiary-container);
+      border-radius: 50%;
+      margin: 2px auto;
+    }
+
+    .events-sidebar {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      height: 100%;
+      position: sticky;
+      top: 100px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">RITB</a>
+      <div class="nav-links" id="nav-links">
+        <a href="index.html">Home</a>
+        <a href="news-archive.html">News</a>
+        <a href="events-calendar.html" class="active">Events</a>
+        <a href="faculty-directory.html">Faculty</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto; margin-right: 1rem;">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
+      <div class="nav-actions" id="nav-actions"></div>
+    </div>
+  </nav>
+
+  <section class="hero page-top" style="padding:4rem 0">
+    <div class="container text-center">
+      <h1 class="display-md font-display" style="color:#fff;margin-bottom:1rem">Campus Calendar</h1>
+      <p style="color:rgba(255,255,255,0.8);max-width:600px;margin:0 auto">Discover academic lectures, social
+        gatherings, and athletic showdowns shaping our university culture.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:3rem">
+        <!-- Calendar View -->
+        <div>
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="display-sm font-display text-primary" id="month-year">...</h2>
+            <div class="flex gap-2">
+              <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)"><span
+                  class="material-symbols-rounded">chevron_left</span></button>
+              <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)"><span
+                  class="material-symbols-rounded">chevron_right</span></button>
+            </div>
+          </div>
+
+          <div class="cal-header">
+            <div>SUN</div>
+            <div>MON</div>
+            <div>TUE</div>
+            <div>WED</div>
+            <div>THU</div>
+            <div>FRI</div>
+            <div>SAT</div>
+          </div>
+          <div id="calendar-grid" class="cal-grid"></div>
+        </div>
+
+        <!-- Upcoming Events Sidebar -->
+        <div>
+          <div class="events-sidebar">
+            <h3 class="title-lg mb-4" id="sidebar-title">Upcoming</h3>
+            <div id="sidebar-events" style="display:flex;flex-direction:column;gap:1.5rem">
+              <div class="skeleton" style="height:80px;border-radius:var(--radius-md)"></div>
+              <div class="skeleton" style="height:80px;border-radius:var(--radius-md)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script src="app.js"></script>
+  <script>
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+    let allEvents = [];
+
+    async function loadCalendar() {
+      try {
+        allEvents = await apiFetch('/api/events');
+        renderCalendar();
+        renderSidebarEvents(allEvents);
+      } catch (e) { console.error(e); }
+    }
+
+    function changeMonth(delta) {
+      currentMonth += delta;
+      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+      renderCalendar();
+    }
+
+    function renderCalendar() {
+      const d = new Date(currentYear, currentMonth, 1);
+      const startDay = d.getDay();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const monthName = d.toLocaleString('default', { month: 'long' });
+      document.getElementById('month-year').textContent = `${monthName} ${currentYear}`;
+
+      const today = new Date();
+      const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+
+      let html = '';
+      // Empty start days
+      for (let i = 0; i < startDay; i++) {
+        html += `<div class="cal-day empty"></div>`;
+      }
+
+      // Actual days
+      for (let i = 1; i <= daysInMonth; i++) {
+        const isToday = isCurrentMonth && i === today.getDate();
+        const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+        const dayEvents = allEvents.filter(e => e.event_date.startsWith(dateStr));
+
+        html += `
+      <div class="cal-day ${isToday ? 'today' : ''}" onclick="filterByDate('${dateStr}')">
+        <div class="cal-date">${i}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center">
+          ${dayEvents.map(e => `<div class="cal-event-dot" title="${e.title}"></div>`).join('')}
+        </div>
+      </div>
+    `;
+      }
+      document.getElementById('calendar-grid').innerHTML = html;
+    }
+
+    function filterByDate(dateStr) {
+      const dayEvents = allEvents.filter(e => e.event_date.startsWith(dateStr));
+      const dateObj = new Date(dateStr + 'T00:00:00');
+      document.getElementById('sidebar-title').textContent = `Events on ${dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+      renderSidebarEvents(dayEvents);
+    }
+
+    function renderSidebarEvents(events) {
+      const sidebar = document.getElementById('sidebar-events');
+      if (events.length === 0) {
+        sidebar.innerHTML = '<p class="text-muted text-sm">No events found.</p>';
+        return;
+      }
+      // Sort and take top 5 upcoming from today onwards if showing all
+      let display = events;
+      if (events === allEvents) {
+        const now = new Date();
+        display = events.filter(e => {
+          if (!e.event_date || !e.time_end) return true;
+          const [hours, minutes] = e.time_end.split(':');
+          const endDateTime = new Date(e.event_date);
+          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+          return endDateTime >= now;
+        }).slice(0, 5);
+        document.getElementById('sidebar-title').textContent = 'Upcoming Events';
+      }
+
+      sidebar.innerHTML = display.map(e => `<a href="event-detail.html?id=${e.id}" style="display:block;text-decoration:none;border-bottom:1px solid var(--surface-container);padding-bottom:1.5rem" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+      <div class="text-sm font-weight-bold text-primary mb-1">${formatDateShort(e.event_date)} • ${formatTime(e.time_start)}</div>
+      <h4 class="title-md mb-2" style="color:var(--on-surface)">${e.title}</h4>
+      <div class="flex items-center gap-1 text-muted text-sm">
+        <span class="material-symbols-rounded" style="font-size:1rem">location_on</span>
+        ${e.location}
+      </div>
+    </a>`).join('');
+    }
+
+    loadCalendar();
+  </script>
+</body>
+
+</html>
