@@ -157,7 +157,10 @@
               <span style="color:var(--outline-variant)">|</span>
               <span class="text-muted" style="font-size:0.9rem">${f.department}</span>
             </div>
-            <p class="body-md text-muted" style="margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${f.bio || ''}</p>
+            <p class="body-md text-muted" style="margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${f.bio
+              ? f.bio
+              : '<span style="background:var(--surface-container);color:var(--on-surface-variant);font-size:.8rem;padding:.2rem .65rem;border-radius:999px;display:inline-flex;align-items:center;gap:.3rem"><span class=\'material-symbols-rounded\' style=\'font-size:.9rem\'>schedule</span>Pending admin approval</span>'
+            }</p>
             <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
               ${(f.research_areas || '').split(',').filter(x => x).map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}
             </div>
