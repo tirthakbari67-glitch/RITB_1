@@ -1354,3 +1354,89 @@ tr:hover td {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ─────────── GLOBAL MOBILE OVERFLOW PROTECTION ─────────── */
+@media (max-width: 900px) {
+  /* Ensure no element bleeds past the viewport */
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* All text should wrap and not stretch containers */
+  p, h1, h2, h3, h4, h5, h6, span, a, td, th, li, div {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* ── Faculty directory cards ── */
+  .faculty-card {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center;
+  }
+  .faculty-card img {
+    margin-bottom: 1rem;
+  }
+
+  /* ── Event detail ── */
+  .event-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .event-info-box {
+    position: static !important;
+    order: -1;
+    width: 100%;
+  }
+  #event-desc {
+    max-width: 100% !important;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* ── Gallery thumbnail strip ── */
+  .gallery-thumbs {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+  }
+  .gallery-main {
+    height: 220px !important;
+  }
+
+  /* ── Attendance table ── */
+  .table-wrap,
+  .att-table-card {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── Nav auth buttons in mobile dropdown ── */
+  #mobile-auth-link {
+    display: flex !important;
+    flex-direction: column;
+    gap: .5rem;
+    padding: .75rem .5rem;
+    border-top: 1px solid var(--surface-container);
+    margin-top: .25rem;
+  }
+  #mobile-auth-link a,
+  #mobile-auth-link button {
+    width: 100%;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+  }
+
+  /* ── Teacher dashboard tabs ── */
+  .dash-tab-bar .container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding-bottom: 0;
+  }
+  .dash-tab {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
