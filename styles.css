@@ -1096,13 +1096,21 @@ tr:hover td {
     gap: 0.5rem;
   }
 
+  /* Hide Sign In button in nav bar on mobile — it appears in the dropdown instead */
   .nav-actions {
-    gap: 0.5rem;
+    display: none !important;
   }
 
   .btn-nav-login {
     padding: 0.4rem 0.875rem;
     font-size: 0.8rem;
+    display: block;
+    text-align: center;
+  }
+
+  /* Show sign-in inside the mobile nav dropdown */
+  .nav-links.active {
+    padding-bottom: 0.5rem;
   }
 
   /* ── Sections ── */
@@ -1255,13 +1263,11 @@ tr:hover td {
     overflow-x: hidden;
   }
 
-  * {
+  img,
+  video,
+  iframe,
+  table {
     max-width: 100%;
-  }
-
-  img {
-    max-width: 100%;
-    height: auto;
   }
 
   /* ── Fix hero card image overlay on mobile ── */

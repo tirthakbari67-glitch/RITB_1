@@ -55,6 +55,10 @@ async function loadAuthState() {
 
 function renderNavAuth() {
   const actions = document.getElementById('nav-actions');
+  // Remove any previously injected mobile auth link
+  const existingMobileAuth = document.getElementById('mobile-auth-link');
+  if (existingMobileAuth) existingMobileAuth.remove();
+
   if (!actions) return;
   if (currentUser) {
     const role = currentUser.role;
@@ -66,10 +70,35 @@ function renderNavAuth() {
         ${currentUser.name.split(' ')[0]}
       </a>
       <button class="btn btn-secondary btn-sm btn-pill" onclick="logout()">Sign Out</button>`;
+
+    // Inject into mobile dropdown too
+    const navLinks = document.getElementById('nav-links');
+    if (navLinks) {
+      const mobileAuth = document.createElement('div');
+      mobileAuth.id = 'mobile-auth-link';
+      mobileAuth.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem .5rem 0;border-top:1px solid var(--surface-container);margin-top:.25rem';
+      mobileAuth.innerHTML = `
+        ${dashLink ? `<a href="${dashLink}" class="btn btn-secondary btn-sm btn-pill" style="font-weight:700;flex:1;justify-content:center">${role === 'admin' ? '⚙ Admin' : '📊 Dashboard'}</a>` : ''}
+        <button class="btn btn-secondary btn-sm btn-pill" style="flex:1" onclick="logout()">Sign Out</button>`;
+      navLinks.appendChild(mobileAuth);
+    }
   } else {
     actions.innerHTML = `<a href="login.html" class="btn-nav-login">Sign In</a>`;
+
+    // Inject Sign In into mobile dropdown
+    const navLinks = document.getElementById('nav-links');
+    if (navLinks) {
+      const mobileAuth = document.createElement('a');
+      mobileAuth.id = 'mobile-auth-link';
+      mobileAuth.href = 'login.html';
+      mobileAuth.className = 'btn-nav-login';
+      mobileAuth.style.cssText = 'margin-top:.5rem;text-align:center;border-top:1px solid var(--surface-container);padding-top:.75rem';
+      mobileAuth.textContent = 'Sign In';
+      navLinks.appendChild(mobileAuth);
+    }
   }
 }
+
 
 async function logout() {
   try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch (e) { }
