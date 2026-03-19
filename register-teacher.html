@@ -34,17 +34,39 @@
     }
 
     /* Photo picker toggle */
-    .photo-toggle { display:flex; gap:.5rem; margin-bottom:.75rem; }
-    .photo-toggle-btn {
-      flex:1; padding:.5rem; border-radius:var(--radius-md); border:1.5px solid var(--outline-variant);
-      background:var(--surface-container); color:var(--on-surface-variant);
-      font-size:.8125rem; font-weight:700; cursor:pointer; transition:all var(--transition);
+    .photo-toggle {
+      display: flex;
+      gap: .5rem;
+      margin-bottom: .75rem;
     }
-    .photo-toggle-btn.active { background:var(--primary-fixed); border-color:var(--primary); color:var(--primary); }
+
+    .photo-toggle-btn {
+      flex: 1;
+      padding: .5rem;
+      border-radius: var(--radius-md);
+      border: 1.5px solid var(--outline-variant);
+      background: var(--surface-container);
+      color: var(--on-surface-variant);
+      font-size: .8125rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .photo-toggle-btn.active {
+      background: var(--primary-fixed);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
 
     @media(max-width:768px) {
-      .reg-page { grid-template-columns: 1fr }
-      .reg-brand { display: none }
+      .reg-page {
+        grid-template-columns: 1fr
+      }
+
+      .reg-brand {
+        display: none
+      }
     }
   </style>
 </head>
@@ -62,8 +84,10 @@
           Begin your journey with RITB. We curate excellence by connecting the brightest minds across our departments.
         </p>
         <div style="background:rgba(255,255,255,0.1);border-radius:var(--radius-lg);padding:1.5rem;margin-top:2.5rem">
-          <p style="font-size:0.875rem;color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:0.3rem">⏳ Approval Required</p>
-          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.7)">Faculty accounts are reviewed by an administrator before activation. You'll be notified by email upon approval.</p>
+          <p style="font-size:0.875rem;color:rgba(255,255,255,0.9);font-weight:600;margin-bottom:0.3rem">⏳ Approval
+            Required</p>
+          <p style="font-size:0.8125rem;color:rgba(255,255,255,0.7)">Faculty accounts are reviewed by an administrator
+            before activation. You'll be notified by email upon approval.</p>
         </div>
       </div>
     </div>
@@ -75,7 +99,8 @@
         <div id="pending-state" class="hidden" style="text-align:center;padding:4rem 0">
           <div style="font-size:4rem;margin-bottom:1rem">🎓</div>
           <h2 class="display-sm font-display" style="margin-bottom:1rem">Application Submitted!</h2>
-          <p class="text-muted body-lg" style="margin-bottom:2rem">Your faculty profile is under review. An administrator will approve your account shortly.</p>
+          <p class="text-muted body-lg" style="margin-bottom:2rem">Your faculty profile is under review. An
+            administrator will approve your account shortly.</p>
           <a href="index.html" class="btn btn-primary btn-lg">Return to RITB</a>
         </div>
 
@@ -149,14 +174,16 @@
             <!-- Research Areas -->
             <div class="form-group">
               <label class="form-label">Research Areas</label>
-              <input id="research_areas" type="text" class="form-input" placeholder="e.g. Robotics, Machine Learning, HRI">
+              <input id="research_areas" type="text" class="form-input"
+                placeholder="e.g. Robotics, Machine Learning, HRI">
               <p class="form-hint">Comma-separated list of your primary research interests.</p>
             </div>
 
             <!-- Biography -->
             <div class="form-group">
               <label class="form-label">Biography</label>
-              <textarea id="bio" class="form-input" rows="4" placeholder="Brief professional biography for the faculty directory..."></textarea>
+              <textarea id="bio" class="form-input" rows="4"
+                placeholder="Brief professional biography for the faculty directory..."></textarea>
             </div>
 
             <!-- Profile Photo — Drive link OR file upload -->
@@ -172,14 +199,16 @@
               </div>
               <!-- URL input -->
               <div id="photo-url-wrap">
-                <input id="photo_url" type="url" class="form-input" placeholder="https://drive.google.com/... or any image URL">
+                <input id="photo_url" type="url" class="form-input"
+                  placeholder="https://drive.google.com/... or any image URL">
                 <p class="form-hint">Paste a Google Drive share link or direct image URL.</p>
               </div>
               <!-- File input -->
               <div id="photo-file-wrap" style="display:none">
                 <input id="photo_file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
                   onchange="previewPhoto(this)">
-                <img id="photo-preview" src="" alt="" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;margin-top:.75rem;border:2px solid var(--outline-variant)">
+                <img id="photo-preview" src="" alt=""
+                  style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;margin-top:.75rem;border:2px solid var(--outline-variant)">
                 <p class="form-hint">JPG, PNG or WebP. Max 5 MB. Will be uploaded on submit.</p>
               </div>
             </div>
@@ -187,7 +216,8 @@
             <!-- Password -->
             <div class="form-group">
               <label class="form-label">Password *</label>
-              <input id="password" type="password" class="form-input" placeholder="At least 8 characters" required minlength="8">
+              <input id="password" type="password" class="form-input" placeholder="At least 8 characters" required
+                minlength="8">
             </div>
             <div class="form-group">
               <label class="form-label">Confirm Password *</label>
@@ -220,7 +250,7 @@
       photoMode = mode;
       document.getElementById('btn-url').classList.toggle('active', mode === 'url');
       document.getElementById('btn-file').classList.toggle('active', mode === 'file');
-      document.getElementById('photo-url-wrap').style.display  = mode === 'url'  ? 'block' : 'none';
+      document.getElementById('photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
       document.getElementById('photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
     }
 
@@ -251,7 +281,7 @@
     async function registerTeacher(e) {
       e.preventDefault();
       const password = document.getElementById('password').value;
-      const confirm  = document.getElementById('confirm').value;
+      const confirm = document.getElementById('confirm').value;
       if (password !== confirm) {
         document.getElementById('form-error').textContent = 'Passwords do not match.';
         document.getElementById('form-error').classList.remove('hidden');
@@ -264,34 +294,39 @@
       try {
         let photo_url = document.getElementById('photo_url').value;
 
-        // If file mode, upload first
+        // If file mode, upload first, then make the URL absolute so it works on any frontend domain
         if (photoMode === 'file') {
           const file = document.getElementById('photo_file').files[0];
           if (file) {
             btn.textContent = 'Uploading photo…';
-            photo_url = await uploadPhoto(file);
+            const relUrl = await uploadPhoto(file);
+            // relUrl is like /uploads/abc.jpg — prefix with the API server base so Netlify can load it
+            photo_url = relUrl.startsWith('http') ? relUrl : `${API}${relUrl}`;
           }
         }
 
-        // Convert drive share link to direct image link if needed
-        const driveMatch = photo_url.match(/\/d\/([\w-]+)/);
-        if (driveMatch) {
-          photo_url = `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+        // Only convert Google Drive share links (not regular /uploads/ paths)
+        if (photo_url && photo_url.includes('drive.google.com')) {
+          const driveMatch = photo_url.match(/\/d\//);  // safety: only if it contains /d/
+          const idMatch = photo_url.match(/\/d\/([\w-]+)/);
+          if (idMatch) {
+            photo_url = `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+          }
         }
 
         await apiFetch('/api/auth/register/teacher', {
           method: 'POST',
           body: JSON.stringify({
-            name:               document.getElementById('name').value,
-            email:              document.getElementById('email').value,
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
             password,
-            title:              document.getElementById('title').value,
-            department:         document.getElementById('department').value,
-            research_areas:     document.getElementById('research_areas').value,
-            bio:                document.getElementById('bio').value,
+            title: document.getElementById('title').value,
+            department: document.getElementById('department').value,
+            research_areas: document.getElementById('research_areas').value,
+            bio: document.getElementById('bio').value,
             photo_url,
             total_publications: parseInt(document.getElementById('total_publications').value) || 0,
-            experience:         parseInt(document.getElementById('experience').value) || 0,
+            experience: parseInt(document.getElementById('experience').value) || 0,
           })
         });
         document.getElementById('form-state').classList.add('hidden');
