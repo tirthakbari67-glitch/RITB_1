@@ -6,11 +6,11 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // Use relative URLs to work on any server (local or deployed)
 const API = isLocal
   ? 'http://localhost:5000'
-  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin
+  : 'https://hospitable-smile-production-05b4.up.railway.app';  // Empty string = same origin
 
 const SERVER = isLocal
   ? 'http://localhost:5000'
-  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin for navigation
+  : 'https://hospitable-smile-production-05b4.up.railway.app';  // Empty string = same origin for navigation
 
 // ─── If opened directly via file://, show message or try localhost ───
 (function () {
