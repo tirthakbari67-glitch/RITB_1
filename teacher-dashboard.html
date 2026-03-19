@@ -262,10 +262,19 @@
     .form-input,
     .form-select {
       text-overflow: ellipsis;
+      min-width: 0;
     }
 
     .flex-wrap {
       flex-wrap: wrap;
+    }
+
+    /* Prevent flex and grid items from expanding beyond their boundaries due to long text */
+    .flex > *,
+    .profile-grid > *,
+    .dash-hero-inner > *,
+    .student-row > * {
+      min-width: 0;
     }
 
     p,
@@ -276,9 +285,12 @@
     h5,
     h6,
     span,
-    div {
+    div,
+    a,
+    td {
       overflow-wrap: break-word;
       word-wrap: break-word;
+      word-break: break-word;
     }
   </style>
 </head>
