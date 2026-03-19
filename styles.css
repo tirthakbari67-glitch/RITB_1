@@ -1087,6 +1087,30 @@ tr:hover td {
     display: flex;
   }
 
+  /* Light background dropdown: force nav links to use dark text */
+  .nav-links.active a {
+    color: var(--on-surface) !important;
+  }
+
+  /* Dark nav pages: dropdown stays dark so white link text stays readable */
+  .dark-nav .nav-links {
+    background: rgba(22, 22, 28, 0.98);
+    border-top-color: rgba(255,255,255,0.1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .dark-nav .nav-links.active a {
+    color: rgba(255,255,255,0.85) !important;
+  }
+  .dark-nav .nav-links.active a:hover {
+    color: #fff !important;
+    background: rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm);
+  }
+  /* Dark nav: mobile-auth-link buttons match dark theme */
+  .dark-nav #mobile-auth-link {
+    border-top-color: rgba(255,255,255,0.1);
+  }
+
   .nav-menu-btn {
     display: flex !important;
   }
@@ -1128,6 +1152,24 @@ tr:hover td {
   }
 
   /* ── Inline grids in index.html hero ── */
+  /* ── Hero section: ensure no height clipping on mobile ── */
+  #hero-section {
+    height: auto !important;
+    min-height: unset !important;
+    overflow: visible !important;
+    padding-bottom: 3rem !important;
+  }
+  /* Hero 1fr 1fr grid → stack, hide image column */
+  #hero-section [style*="grid-template-columns:1fr 1fr"],
+  #hero-section [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  /* Hide the hero image div on mobile; text takes full width */
+  #hero-section > .container > div > div:last-child {
+    display: none !important;
+  }
+
   [style*="grid-template-columns:1fr 1fr"],
   [style*="grid-template-columns: 1fr 1fr"] {
     grid-template-columns: 1fr !important;
