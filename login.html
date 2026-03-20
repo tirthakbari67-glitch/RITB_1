@@ -162,7 +162,7 @@
         const res = await apiFetch('/api/auth/check', { method: 'POST', body: JSON.stringify({ email }) });
         if (res.exists) {
           if (res.status === 'pending') {
-            showErr('email-error', 'Your account is pending admin approval.');
+            showErr('email-error', '⏳ Your faculty account is awaiting admin approval. You will be able to sign in once an administrator activates your account.');
             btn.textContent = 'Continue'; btn.disabled = false;
             return;
           }

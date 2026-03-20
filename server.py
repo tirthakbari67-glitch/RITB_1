@@ -110,7 +110,49 @@ def static_files(filename):
     return send_from_directory(".", filename)
 
 
-# ─────────────────────────── AUTH ───────────────────────────
+@app.route("/uploads/<path:filename>")
+def serve_upload(filename):
+    """Serve uploaded files from the uploads folder."""
+    return send_from_directory(UPLOAD_FOLDER, filename)
+
+
+# ─────────────────────────── FILE UPLOAD ───────────────────────────
+import uuid
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route("/api/upload", methods=["POST"])
+def upload_file():
+    """Upload an image file. No auth required so faculty can upload during registration."""
+    if "file" not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    file = request.files["file"]
+    if file.filename == "":
+        return jsonify({"error": "No file selected"}), 400
+    if not allowed_file(file.filename):
+        return jsonify({"error": "File type not allowed. Use PNG, JPG, JPEG, GIF or WebP."}), 400
+    # Limit file size to 5 MB
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > 5 * 1024 * 1024:
+        return jsonify({"error": "File too large. Maximum size is 5 MB."}), 400
+
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    save_path = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(save_path)
+
+    # Return the URL relative to the server root
+    url = f"/uploads/{filename}"
+    return jsonify({"url": url, "filename": filename}), 201
+
+
 
 
 @app.route("/api/auth/check", methods=["POST"])
@@ -246,6 +288,8 @@ def register_teacher():
     bio = data.get("bio", "")
     photo_url = data.get("photo_url", "")
     research_areas = data.get("research_areas", "")
+    total_publications = int(data.get("total_publications", 0) or 0)
+    experience = int(data.get("experience", 0) or 0)
     if not all([email, name, password]):
         return jsonify({"error": "Email, name, and password are required"}), 400
     db = get_db()
@@ -263,8 +307,8 @@ def register_teacher():
         db.commit()
         user = db.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         db.execute(
-            """INSERT INTO faculty (user_id, name, title, department, bio, photo_url, email, research_areas)
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO faculty (user_id, name, title, department, bio, photo_url, email, research_areas, total_publications, experience)
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user["id"],
                 name,
@@ -274,6 +318,8 @@ def register_teacher():
                 photo_url,
                 email,
                 research_areas,
+                total_publications,
+                experience,
             ),
         )
         db.commit()
@@ -548,18 +594,18 @@ def get_faculty():
     db = get_db()
     department = request.args.get("department", "")
     search = request.args.get("search", "")
-    query = "SELECT * FROM faculty"
+    query = "SELECT f.*, u.status as user_status FROM faculty f LEFT JOIN users u ON f.user_id = u.id"
     params = []
     conditions = []
     if department and department != "All":
         conditions.append("department = ?")
         params.append(department)
     if search:
-        conditions.append("(name LIKE ? OR department LIKE ? OR research_areas LIKE ?)")
+        conditions.append("(f.name LIKE ? OR f.department LIKE ? OR f.research_areas LIKE ?)")
         params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
     if conditions:
         query += " WHERE " + " AND ".join(conditions)
-    query += " ORDER BY name ASC"
+    query += " ORDER BY f.name ASC"
     faculty = rows_to_list(db.execute(query, params).fetchall())
     for f in faculty:
         try:
@@ -568,6 +614,9 @@ def get_faculty():
         except Exception:
             f["publications"] = []
             f["courses"] = []
+        # Hide bio if linked user account is still pending approval
+        if f.get("user_status") == "pending":
+            f["bio"] = None
     db.close()
     return jsonify(faculty)
 
@@ -575,17 +624,23 @@ def get_faculty():
 @app.route("/api/faculty/<int:faculty_id>", methods=["GET"])
 def get_faculty_member(faculty_id):
     db = get_db()
-    f = db.execute("SELECT * FROM faculty WHERE id = ?", (faculty_id,)).fetchone()
+    row = db.execute(
+        "SELECT f.*, u.status as user_status FROM faculty f LEFT JOIN users u ON f.user_id = u.id WHERE f.id = ?",
+        (faculty_id,)
+    ).fetchone()
     db.close()
-    if not f:
+    if not row:
         return jsonify({"error": "Not found"}), 404
-    f = dict(f)
+    f = dict(row)
     try:
         f["publications"] = json.loads(f.get("publications") or "[]")
         f["courses"] = json.loads(f.get("courses") or "[]")
     except Exception:
         f["publications"] = []
         f["courses"] = []
+    # Hide bio until admin approves the account
+    if f.get("user_status") == "pending":
+        f["bio"] = None
     return jsonify(f)
 
 
@@ -634,7 +689,7 @@ def update_faculty(faculty_id):
         return jsonify({"error": "Forbidden"}), 403
     data = request.json
     db.execute(
-        """UPDATE faculty SET name=?, title=?, department=?, bio=?, photo_url=?, email=?, research_areas=?, publications=?, courses=? WHERE id=?""",
+        """UPDATE faculty SET name=?, title=?, department=?, bio=?, photo_url=?, email=?, research_areas=?, publications=?, courses=?, total_publications=?, experience=? WHERE id=?""",
         (
             data.get("name", fac["name"]),
             data.get("title", fac["title"]),
@@ -647,6 +702,8 @@ def update_faculty(faculty_id):
                 data.get("publications", json.loads(fac["publications"] or "[]"))
             ),
             json.dumps(data.get("courses", json.loads(fac["courses"] or "[]"))),
+            int(data.get("total_publications", fac["total_publications"] or 0) or 0),
+            int(data.get("experience", fac["experience"] or 0) or 0),
             faculty_id,
         ),
     )
@@ -999,32 +1056,6 @@ def admin_attendance_overview():
     ).fetchall())
     db.close()
     return jsonify(rows)
-
-
-# ─────────────────────────── UPLOAD ───────────────────────────
-
-
-@app.route("/api/upload", methods=["POST"])
-def upload_file():
-    user = require_auth(["admin", "teacher"])
-    if not user:
-        return jsonify({"error": "Unauthorized"}), 401
-    if "file" not in request.files:
-        return jsonify({"error": "No file"}), 400
-    f = request.files["file"]
-    if f.filename == "":
-        return jsonify({"error": "No selected file"}), 400
-    ext = os.path.splitext(f.filename)[1].lower()
-    if ext not in [".jpg", ".jpeg", ".png", ".gif", ".webp"]:
-        return jsonify({"error": "Invalid file type"}), 400
-    filename = f"{datetime.now().strftime('%Y%m%d%H%M%S%f')}{ext}"
-    f.save(os.path.join(UPLOAD_FOLDER, filename))
-    return jsonify({"url": f"/uploads/{filename}"})
-
-
-@app.route("/uploads/<path:filename>")
-def serve_upload(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
 # ─────────────────────────── Run ───────────────────────────

@@ -124,6 +124,17 @@ def init_db():
         except Exception:
             pass  # column already exists
 
+    # Faculty new columns migration
+    for col, defn in [
+        ('total_publications', 'INTEGER DEFAULT 0'),
+        ('experience',         'INTEGER DEFAULT 0'),
+    ]:
+        try:
+            c.execute(f'ALTER TABLE faculty ADD COLUMN {col} {defn}')
+            conn.commit()
+        except Exception:
+            pass  # column already exists
+
     # Seed default data if empty
     try:
         _seed_data(c)

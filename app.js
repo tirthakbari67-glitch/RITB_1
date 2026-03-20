@@ -60,6 +60,9 @@ function renderNavAuth() {
   if (existingMobileAuth) existingMobileAuth.remove();
 
   if (!actions) return;
+
+  const isMobile = window.innerWidth <= 768;
+
   if (currentUser) {
     const role = currentUser.role;
     const dashLink = role === 'admin' ? 'admin.html' : role === 'teacher' ? 'teacher-dashboard.html' : null;
@@ -71,30 +74,34 @@ function renderNavAuth() {
       </a>
       <button class="btn btn-secondary btn-sm btn-pill" onclick="logout()">Sign Out</button>`;
 
-    // Inject into mobile dropdown too
-    const navLinks = document.getElementById('nav-links');
-    if (navLinks) {
-      const mobileAuth = document.createElement('div');
-      mobileAuth.id = 'mobile-auth-link';
-      mobileAuth.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem .5rem 0;border-top:1px solid var(--surface-container);margin-top:.25rem';
-      mobileAuth.innerHTML = `
-        ${dashLink ? `<a href="${dashLink}" class="btn btn-secondary btn-sm btn-pill" style="font-weight:700;flex:1;justify-content:center">${role === 'admin' ? '⚙ Admin' : '📊 Dashboard'}</a>` : ''}
-        <button class="btn btn-secondary btn-sm btn-pill" style="flex:1" onclick="logout()">Sign Out</button>`;
-      navLinks.appendChild(mobileAuth);
+    // Only inject into mobile dropdown when hamburger is active
+    if (isMobile) {
+      const navLinks = document.getElementById('nav-links');
+      if (navLinks) {
+        const mobileAuth = document.createElement('div');
+        mobileAuth.id = 'mobile-auth-link';
+        mobileAuth.style.cssText = 'display:flex;gap:.5rem;flex-wrap:wrap;padding:.5rem .5rem 0;border-top:1px solid var(--surface-container);margin-top:.25rem';
+        mobileAuth.innerHTML = `
+          ${dashLink ? `<a href="${dashLink}" class="btn btn-secondary btn-sm btn-pill" style="font-weight:700;flex:1;justify-content:center">${role === 'admin' ? '⚙ Admin' : '📊 Dashboard'}</a>` : ''}
+          <button class="btn btn-secondary btn-sm btn-pill" style="flex:1" onclick="logout()">Sign Out</button>`;
+        navLinks.appendChild(mobileAuth);
+      }
     }
   } else {
     actions.innerHTML = `<a href="login.html" class="btn-nav-login">Sign In</a>`;
 
-    // Inject Sign In into mobile dropdown
-    const navLinks = document.getElementById('nav-links');
-    if (navLinks) {
-      const mobileAuth = document.createElement('a');
-      mobileAuth.id = 'mobile-auth-link';
-      mobileAuth.href = 'login.html';
-      mobileAuth.className = 'btn-nav-login';
-      mobileAuth.style.cssText = 'margin-top:.5rem;text-align:center;border-top:1px solid var(--surface-container);padding-top:.75rem';
-      mobileAuth.textContent = 'Sign In';
-      navLinks.appendChild(mobileAuth);
+    // Only inject Sign In into mobile dropdown when on mobile
+    if (isMobile) {
+      const navLinks = document.getElementById('nav-links');
+      if (navLinks) {
+        const mobileAuth = document.createElement('a');
+        mobileAuth.id = 'mobile-auth-link';
+        mobileAuth.href = 'login.html';
+        mobileAuth.className = 'btn-nav-login';
+        mobileAuth.style.cssText = 'margin-top:.5rem;text-align:center;border-top:1px solid var(--surface-container);padding-top:.75rem';
+        mobileAuth.textContent = 'Sign In';
+        navLinks.appendChild(mobileAuth);
+      }
     }
   }
 }

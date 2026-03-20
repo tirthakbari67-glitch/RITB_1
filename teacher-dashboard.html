@@ -219,6 +219,79 @@
     .del-student-btn:hover {
       background: var(--error-container);
     }
+
+    /* ─── Bio clamping in profile view card ─── */
+    .profile-bio-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.7;
+      max-height: calc(1.7em * 5);
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+
+    /* ─── Table Text Truncation ─── */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      /* forces cells to respect widths */
+    }
+
+    th,
+    td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Let the Actions column take only what it needs, allocate the rest */
+    th:last-child,
+    td:last-child {
+      width: 140px;
+    }
+
+    /* ─── General Long Text Prevention ─── */
+    .form-input,
+    .form-select {
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .flex-wrap {
+      flex-wrap: wrap;
+    }
+
+    /* Prevent flex and grid items from expanding beyond their boundaries due to long text */
+    .flex>*,
+    .profile-grid>*,
+    .dash-hero-inner>*,
+    .student-row>* {
+      min-width: 0;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    span,
+    div,
+    a,
+    td {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: break-word;
+    }
   </style>
 </head>
 
@@ -233,7 +306,6 @@
         <a href="news-archive.html">News</a>
         <a href="events-calendar.html">Events</a>
         <a href="faculty-directory.html">Faculty</a>
-        <a href="teacher-dashboard.html" class="active">Dashboard</a>
       </div>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
@@ -394,14 +466,19 @@
 
         <div class="form-group">
           <label class="form-label">Event Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the main banner. Recommended size: 1600×900px.</p>
+          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the main
+            banner. Recommended size: 1600×900px.</p>
           <div id="ev-img-rows">
             <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ev-img-input" placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1" oninput="previewFirstEventImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')" title="Remove">✕</button>
+              <input type="url" class="form-input ev-img-input"
+                placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1"
+                oninput="previewFirstEventImg()">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')"
+                title="Remove">✕</button>
             </div>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ev-img-rows')" style="margin-top:0.5rem">
+          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ev-img-rows')"
+            style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
           </button>
           <img id="ev-img-pre" class="img-preview" alt="Event main photo preview" style="margin-top:0.75rem">
@@ -475,14 +552,19 @@
 
         <div class="form-group">
           <label class="form-label">Article Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the cover image.</p>
+          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the cover
+            image.</p>
           <div id="ns-img-rows">
             <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ns-img-input" placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1" oninput="previewFirstNewsImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')" title="Remove">✕</button>
+              <input type="url" class="form-input ns-img-input"
+                placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1"
+                oninput="previewFirstNewsImg()">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')"
+                title="Remove">✕</button>
             </div>
           </div>
-          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ns-img-rows')" style="margin-top:0.5rem">
+          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ns-img-rows')"
+            style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
           </button>
           <img id="ns-img-pre" class="img-preview" alt="Article photo preview" style="margin-top:0.75rem">
@@ -626,11 +708,13 @@
   <!-- ── Manage Students Modal ── -->
   <div class="modal-backdrop" id="modal-ms">
     <div class="modal">
-      <button class="modal-close" onclick="closeModal('modal-ms')"><span class="material-symbols-rounded">close</span></button>
+      <button class="modal-close" onclick="closeModal('modal-ms')"><span
+          class="material-symbols-rounded">close</span></button>
       <h3 class="title-lg mb-1">👥 Manage Registered Students</h3>
       <p class="text-muted text-sm mb-4" id="ms-event-title"></p>
       <div id="ms-student-rows" style="max-height:320px;overflow-y:auto;margin-bottom:1rem"></div>
-      <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addManageStudentRow()" style="margin-bottom:1.5rem">
+      <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addManageStudentRow()"
+        style="margin-bottom:1.5rem">
         <span class="material-symbols-rounded" style="font-size:1rem">person_add</span> Add Student
       </button>
       <div class="flex gap-3">
@@ -643,7 +727,8 @@
   <!-- ── Manage Photos Modal ── -->
   <div class="modal-backdrop" id="modal-mp">
     <div class="modal" style="max-width:680px">
-      <button class="modal-close" onclick="closeModal('modal-mp')"><span class="material-symbols-rounded">close</span></button>
+      <button class="modal-close" onclick="closeModal('modal-mp')"><span
+          class="material-symbols-rounded">close</span></button>
       <h3 class="title-lg mb-1">📷 Manage Photos</h3>
       <p class="text-muted text-sm mb-4" id="mp-item-title"></p>
 
@@ -745,8 +830,8 @@
         // Profile view
         renderProfileView();
 
-        // Fill edit profile fields
-        if (myProfile) {
+        // Fill edit profile fields only if not pending
+        if (myProfile && currentUser.status !== 'pending') {
           document.getElementById('p-name').value = myProfile.name || '';
           document.getElementById('p-research').value = myProfile.research_areas || '';
           document.getElementById('p-bio').value = myProfile.bio || '';
@@ -760,22 +845,53 @@
       } catch (e) { console.error(e); }
     }
 
+    // Helper: make photo_url absolute (fixes /uploads/ paths when running on Netlify)
+    function resolvePhotoUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      // relative path — prefix with API server base
+      return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
     function renderProfileView() {
+      const profilePanel = document.getElementById('panel-profile');
+      const isPending = currentUser && currentUser.status === 'pending';
+
+      // If pending, replace entire profile panel with a waiting notice
+      if (isPending) {
+        profilePanel.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center">
+            <span class="material-symbols-rounded" style="font-size:4rem;color:var(--primary);margin-bottom:1.25rem">hourglass_top</span>
+            <h2 class="display-sm font-display" style="margin-bottom:0.75rem">Account Awaiting Approval</h2>
+            <p class="body-lg text-muted" style="max-width:460px;margin-bottom:2rem">
+              Your faculty profile is currently under review. Once an administrator approves your account,
+              your full profile and dashboard features will become available.
+            </p>
+            <div style="background:var(--primary-fixed);border-radius:var(--radius-lg);padding:1.5rem 2rem;max-width:360px;width:100%">
+              <p style="color:var(--primary);font-weight:600;margin-bottom:.25rem">What happens next?</p>
+              <p class="text-sm text-muted">The admin will review your registration and activate your account. Check back later or contact your administrator.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
       const el = document.getElementById('profile-view');
+      if (!el) return; // panel was replaced above
       if (!myProfile) {
         el.innerHTML = '<p class="text-muted text-sm">No faculty profile found. Contact admin to create your profile, or fill in the Edit Profile form.</p>';
         return;
       }
       const areas = (myProfile.research_areas || '').split(',').filter(x => x);
+      const photoSrc = resolvePhotoUrl(myProfile.photo_url);
       el.innerHTML = `
     <div class="flex items-center gap-3 mb-3">
-      <img src="${myProfile.photo_url}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface-container)" onerror="imgFallback(this,'faculty')">
-      <div>
-        <h4 class="title-md">${myProfile.name}</h4>
-        <p class="text-muted text-sm">${myProfile.title} — ${myProfile.department}</p>
+      <img src="${photoSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface-container)" onerror="imgFallback(this,'faculty')">
+      <div style="min-width:0">
+        <h4 class="title-md" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.name}</h4>
+        <p class="text-muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.title} — ${myProfile.department}</p>
       </div>
     </div>
-    <p class="body-md text-muted mb-4" style="line-height:1.7;white-space:pre-wrap">${myProfile.bio || 'No biography yet.'}</p>
+    <p class="body-md text-muted mb-4 profile-bio-clamp">${myProfile.bio || 'No biography yet.'}</p>
     <div class="flex flex-wrap gap-2 mb-4">${areas.map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}</div>
     <a href="faculty-profile.html?id=${myProfile.id}" class="btn btn-outline btn-sm btn-pill" target="_blank">
       <span class="material-symbols-rounded" style="font-size:1rem">open_in_new</span> View Public Profile
@@ -797,7 +913,7 @@
       <td class="text-muted text-sm">${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</td>
       <td class="text-muted text-sm">${e.location || '–'}</td>
       <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("event",${e.id},"${e.image_url||''}",${JSON.stringify(e.extra_images||'[]').replace(/'/g,"&#39;")})' title="Manage Photos">
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}",${JSON.stringify(e.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
           <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
         </button>
         <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManageStudents(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Manage Students">
@@ -827,7 +943,7 @@
       <td><span class="chip ${getCategoryColor(n.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${n.category}</span></td>
       <td class="text-muted text-sm">${formatDateShort(n.published_at)}</td>
       <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("news",${n.id},"${n.image_url||''}",${JSON.stringify(n.extra_images||'[]').replace(/'/g,"&#39;")})' title="Manage Photos">
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}",${JSON.stringify(n.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
           <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
         </button>
         <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openNewsEdit(${JSON.stringify(n).replace(/'/g, "&#39;")})' title="Edit">
@@ -1002,7 +1118,7 @@
       try {
         const extras = typeof extraImagesRaw === 'string' ? JSON.parse(extraImagesRaw) : extraImagesRaw;
         if (Array.isArray(extras)) allPhotos = allPhotos.concat(extras.filter(Boolean));
-      } catch {}
+      } catch { }
 
       const container = document.getElementById('mp-photo-rows');
       container.innerHTML = '';
@@ -1029,8 +1145,8 @@
       const strip = document.getElementById('mp-preview-strip');
       strip.innerHTML = urls.map((u, i) => `
         <div style="position:relative">
-          <img src="${u}" style="width:88px;height:62px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid ${i===0?'var(--primary)':'var(--surface-container)'}" onerror="this.style.display='none'">
-          ${i===0 ? '<span style="position:absolute;bottom:2px;left:4px;font-size:0.55rem;color:#fff;background:var(--primary);padding:0 3px;border-radius:2px">Main</span>' : ''}
+          <img src="${u}" style="width:88px;height:62px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid ${i === 0 ? 'var(--primary)' : 'var(--surface-container)'}" onerror="this.style.display='none'">
+          ${i === 0 ? '<span style="position:absolute;bottom:2px;left:4px;font-size:0.55rem;color:#fff;background:var(--primary);padding:0 3px;border-radius:2px">Main</span>' : ''}
         </div>`).join('');
     }
 
