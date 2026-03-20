@@ -768,12 +768,32 @@
       <h3 class="title-lg mb-1">📷 Manage Photos</h3>
       <p class="text-muted text-sm mb-4" id="mp-item-title"></p>
 
-      <div id="mp-photo-rows" style="margin-bottom:1rem"></div>
-      <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addMpRow()" style="margin-bottom:1.5rem">
-        <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Photo
-      </button>
+      <!-- Add new photo section -->
+      <div style="padding:1rem;background:var(--surface-container);border-radius:var(--radius-md);margin-bottom:1rem">
+        <p class="label-sm text-muted" style="margin-bottom:.5rem">➕ Add a New Photo</p>
+        <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+          <button type="button" class="photo-toggle-btn active" id="mp-btn-url" onclick="setMpAddMode('url')">🔗 Drive / URL</button>
+          <button type="button" class="photo-toggle-btn" id="mp-btn-file" onclick="setMpAddMode('file')">📁 Upload from Device</button>
+        </div>
+        <div id="mp-url-wrap" style="display:flex;gap:.5rem">
+          <input type="url" class="form-input" id="mp-new-url" placeholder="https://drive.google.com/... or direct image URL" style="flex:1">
+          <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Add</button>
+        </div>
+        <div id="mp-file-wrap" style="display:none;flex-direction:column;gap:.5rem">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input id="mp-new-file" type="file" class="form-input" accept="image/*" style="flex:1;padding:.5rem"
+              onchange="(()=>{const f=this.files[0];if(f){const r=new FileReader();r.onload=e=>{const img=document.getElementById('mp-new-file-preview');img.src=e.target.result;img.style.display='block';};r.readAsDataURL(f);}})()">
+            <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Upload & Add</button>
+          </div>
+          <img id="mp-new-file-preview" src="" alt="" style="display:none;width:80px;height:56px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--outline-variant)">
+        </div>
+      </div>
 
-      <!-- Live preview of all photos -->
+      <!-- Current photos list -->
+      <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Current Photos (first = main banner)</p>
+      <div id="mp-photo-rows" style="margin-bottom:1rem;max-height:200px;overflow-y:auto"></div>
+
+      <!-- Live preview strip -->
       <div id="mp-preview-strip" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem"></div>
 
       <div class="flex gap-3">
@@ -1213,11 +1233,13 @@
     let mpType = null;  // 'event' or 'news'
     let mpItemId = null;
     let mpRowCount = 0;
+    let mpAddMode = 'url';  // 'url' | 'file'
 
     function openManagePhotos(type, id, mainUrl, extraImagesRaw) {
       mpType = type;
       mpItemId = id;
       mpRowCount = 0;
+      mpAddMode = 'url';
 
       let allPhotos = [];
       if (mainUrl) allPhotos.push(mainUrl);
@@ -1229,7 +1251,12 @@
       const container = document.getElementById('mp-photo-rows');
       container.innerHTML = '';
       allPhotos.forEach(url => addMpRow(url));
-      if (!allPhotos.length) addMpRow();
+
+      // Reset the add-new section
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      setMpAddMode('url');
 
       refreshMpPreview();
       document.getElementById('mp-item-title').textContent =
@@ -1237,12 +1264,38 @@
       document.getElementById('modal-mp').classList.add('open');
     }
 
+    function setMpAddMode(mode) {
+      mpAddMode = mode;
+      document.getElementById('mp-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('mp-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('mp-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('mp-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+
+    async function addNewMpPhoto() {
+      let url = '';
+      if (mpAddMode === 'file') {
+        const file = document.getElementById('mp-new-file').files[0];
+        if (!file) { showToast('Please choose a file first', 'error'); return; }
+        try { url = await uploadImageFile(file); } catch(e) { showToast(e.message, 'error'); return; }
+      } else {
+        url = convertDriveUrl(document.getElementById('mp-new-url').value.trim());
+        if (!url) { showToast('Please enter a URL or Drive link', 'error'); return; }
+      }
+      addMpRow(url);
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      refreshMpPreview();
+      showToast('Photo added — click Save to apply', 'success');
+    }
+
     function addMpRow(url = '') {
       const container = document.getElementById('mp-photo-rows');
       const idx = mpRowCount++;
       const div = document.createElement('div');
       div.className = 'flex gap-2 mb-2'; div.id = `mp-row-${idx}`;
-      div.innerHTML = `<input type="url" class="form-input mp-url-input" placeholder="https://images.unsplash.com/photo-..." style="flex:1" value="${url}" oninput="refreshMpPreview()"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mp-row-${idx}').remove();refreshMpPreview()" title="Remove">✕</button>`;
+      div.innerHTML = `<input type="url" class="form-input mp-url-input" placeholder="https://..." style="flex:1" value="${url}" oninput="refreshMpPreview()"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mp-row-${idx}').remove();refreshMpPreview()" title="Remove">✕</button>`;
       container.appendChild(div);
     }
 
