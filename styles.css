@@ -728,6 +728,29 @@ tr:hover td {
   }
 }
 
+/* ─── Photo Mode Toggle Buttons (teacher-dashboard) ─── */
+.photo-toggle-btn {
+  padding: 0.35rem 0.85rem;
+  border: 1.5px solid var(--outline-variant);
+  border-radius: var(--radius-full);
+  background: var(--surface-container-lowest);
+  color: var(--on-surface-variant);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+.photo-toggle-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+.photo-toggle-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+
 /* ─── Sidebar Dashboard Layout ─── */
 .dashboard-layout {
   display: flex;
