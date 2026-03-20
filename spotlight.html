@@ -146,13 +146,25 @@
   <section class="section">
     <div class="container">
 
-      <div class="refresh-bar">
+      <!-- AUTO-RESET BANNER -->
+      <div class="refresh-bar" id="refresh-info-bar">
         <span class="material-symbols-rounded" style="font-size:1.1rem">update</span>
-        <span id="refresh-info">Spotlight updates automatically — showing ranked students from events in the last 30 days.</span>
+        <span id="refresh-info">Loading…</span>
       </div>
 
-      <!-- Top-3 Podium (from the most recent ranked event) -->
-      <h2 class="title-xl font-display" style="margin-bottom:1.25rem">🏆 This Month's Top 3</h2>
+      <!-- ── ATTENDANCE-BASED TOP PERFORMERS ── -->
+      <h2 class="title-xl font-display" style="margin-bottom:.5rem">🏅 Top Performers This Month</h2>
+      <p class="text-muted text-sm" style="margin-bottom:1.25rem">Students with the best attendance across all events in <span id="current-month-label"></span>. Resets on the 1st of each month.</p>
+      <div id="top-performers-section" style="margin-bottom:3rem"></div>
+
+      <hr style="border:none;border-top:1px solid var(--surface-container);margin:2rem 0">
+
+      <!-- ── FACULTY-RANKED SPOTLIGHT ── -->
+      <div class="refresh-bar">
+        <span class="material-symbols-rounded" style="font-size:1.1rem">star</span>
+        <span>Faculty-assigned rankings from events in the last 30 days</span>
+      </div>
+      <h2 class="title-xl font-display" style="margin-bottom:1.25rem">🏆 Faculty-Ranked Students</h2>
       <div id="podium-section"></div>
 
       <!-- All ranked results grouped by event -->
@@ -166,23 +178,96 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       loadAuthState();
+      renderMonthLabel();
       await loadSpotlight();
     });
 
-    async function loadSpotlight() {
-      let data = [];
-      try {
-        data = await apiFetch('/api/spotlight');
-      } catch(e) {
-        console.error(e);
-      }
+    function renderMonthLabel() {
+      const now = new Date();
+      const label = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const el = document.getElementById('current-month-label');
+      if (el) el.textContent = label;
 
-      renderPodium(data);
-      renderEventGroups(data);
-      renderRefreshInfo();
+      // Days until 1st of next month
+      const next1st = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const diffDays = Math.ceil((next1st - now) / (1000 * 60 * 60 * 24));
+      const infoEl = document.getElementById('refresh-info');
+      if (infoEl) {
+        infoEl.textContent = `Spotlight resets in ${diffDays} day${diffDays !== 1 ? 's' : ''} (1st of next month). Faculty-ranked data covers the last 30 days.`;
+      }
     }
 
-    /* ── Podium: top-3 from the single most recent event that has any rank ── */
+    async function loadSpotlight() {
+      // Load both sections in parallel
+      const [topPerfs, ranked] = await Promise.allSettled([
+        apiFetch('/api/top-performers').catch(() => []),
+        apiFetch('/api/spotlight').catch(() => [])
+      ]);
+      const topData   = topPerfs.status === 'fulfilled'  ? topPerfs.value  : [];
+      const rankData  = ranked.status   === 'fulfilled'  ? ranked.value    : [];
+
+      renderTopPerformers(topData);
+      renderPodium(rankData);
+      renderEventGroups(rankData);
+    }
+
+    /* ── TOP PERFORMERS (attendance-based, current month) ── */
+    function renderTopPerformers(data) {
+      const el = document.getElementById('top-performers-section');
+
+      if (!data || !data.length) {
+        el.innerHTML = `<div class="spotlight-empty">
+          <span class="material-symbols-rounded big-icon">emoji_events</span>
+          <p style="font-size:1.1rem;font-weight:600">No attendance data yet this month</p>
+          <p style="font-size:.9rem;margin-top:.5rem">Faculty can mark students as Present from the Attendance page. Top 3 will appear here automatically.</p>
+        </div>`;
+        return;
+      }
+
+      const medals  = ['🥇', '🥈', '🥉'];
+      const clsMap  = ['gold', 'silver', 'bronze'];
+      const lblMap  = ['1st Place', '2nd Place', '3rd Place'];
+
+      // Podium ordering: 2nd | 1st | 3rd
+      const podiumOrder = data.length >= 3
+        ? [data[1], data[0], data[2]]
+        : data.length === 2
+        ? [null, data[0], data[1]]
+        : [null, data[0], null];
+
+      el.innerHTML = `
+        <div class="podium-grid">
+          ${podiumOrder.map((s, pi) => {
+            if (!s) return `<div></div>`;
+            const origIdx = data.indexOf(s);
+            const cls  = clsMap[origIdx]  || 'bronze';
+            const medal = medals[origIdx] || '🏅';
+            const lbl  = lblMap[origIdx]  || '';
+            const pct  = s.attendance_pct ?? Math.round((s.present_count / Math.max(s.total_events, 1)) * 100);
+            return `
+            <div class="podium-card ${cls}">
+              <span class="podium-medal">${medal}</span>
+              <div class="podium-rank ${cls}">${lbl}</div>
+              <div class="podium-name">${esc(s.student_name)}</div>
+              <div class="podium-sub">${esc(s.student_branch || '')}${s.student_year ? ' · ' + esc(s.student_year) : ''}</div>
+
+              <!-- Attendance bar -->
+              <div style="margin:0.75rem 0 0.5rem;text-align:left">
+                <div style="display:flex;justify-content:space-between;font-size:.7rem;color:rgba(255,255,255,.55);margin-bottom:.3rem">
+                  <span>${s.present_count} / ${s.total_events} events</span>
+                  <span>${pct}%</span>
+                </div>
+                <div style="background:rgba(255,255,255,.12);border-radius:999px;height:6px;overflow:hidden">
+                  <div style="width:${Math.min(pct,100)}%;height:100%;border-radius:999px;background:${cls === 'gold' ? '#f0c040' : cls === 'silver' ? '#c0c0c0' : '#cd7f32'}"></div>
+                </div>
+              </div>
+              <span class="podium-event ${cls}">Attendance ${pct}%</span>
+            </div>`;
+          }).join('')}
+        </div>`;
+    }
+
+    /* ── FACULTY-RANKED PODIUM ── */
     function renderPodium(data) {
       const podiumEl = document.getElementById('podium-section');
 
@@ -266,13 +351,6 @@
               </div>`).join('')}
           </div>
         </div>`).join('');
-    }
-
-    function renderRefreshInfo() {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - 30);
-      document.getElementById('refresh-info').textContent =
-        `Showing ranked students from events since ${cutoff.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}. Spotlight auto-updates every month.`;
     }
 
     function esc(str) {
