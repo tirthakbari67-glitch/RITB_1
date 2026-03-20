@@ -270,10 +270,10 @@
     }
 
     /* Prevent flex and grid items from expanding beyond their boundaries due to long text */
-    .flex > *,
-    .profile-grid > *,
-    .dash-hero-inner > *,
-    .student-row > * {
+    .flex>*,
+    .profile-grid>*,
+    .dash-hero-inner>*,
+    .student-row>* {
       min-width: 0;
     }
 
@@ -466,20 +466,38 @@
 
         <div class="form-group">
           <label class="form-label">Event Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the main
-            banner. Recommended size: 1600×900px.</p>
-          <div id="ev-img-rows">
-            <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ev-img-input"
-                placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1"
-                oninput="previewFirstEventImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')"
-                title="Remove">✕</button>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the main banner. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
+
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Main / Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ev-btn-url" onclick="setEvPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ev-btn-file" onclick="setEvPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ev-photo-url-wrap">
+              <input type="url" class="form-input ev-img-input" id="ev-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstEventImg()"
+                style="width:100%">
+            </div>
+            <div id="ev-photo-file-wrap" style="display:none">
+              <input id="ev-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewEvFile(this)">
+              <img id="ev-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
             </div>
           </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ev-img-rows"></div>
           <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ev-img-rows')"
             style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
           </button>
           <img id="ev-img-pre" class="img-preview" alt="Event main photo preview" style="margin-top:0.75rem">
         </div>
@@ -552,20 +570,38 @@
 
         <div class="form-group">
           <label class="form-label">Article Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the cover
-            image.</p>
-          <div id="ns-img-rows">
-            <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ns-img-input"
-                placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1"
-                oninput="previewFirstNewsImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')"
-                title="Remove">✕</button>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the cover image. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
+
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ns-btn-url" onclick="setNsPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ns-btn-file" onclick="setNsPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ns-photo-url-wrap">
+              <input type="url" class="form-input ns-img-input" id="ns-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstNewsImg()"
+                style="width:100%">
+            </div>
+            <div id="ns-photo-file-wrap" style="display:none">
+              <input id="ns-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewNsFile(this)">
+              <img id="ns-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
             </div>
           </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ns-img-rows"></div>
           <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ns-img-rows')"
             style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
           </button>
           <img id="ns-img-pre" class="img-preview" alt="Article photo preview" style="margin-top:0.75rem">
         </div>
@@ -992,20 +1028,82 @@
       }).filter(s => s.name || s.branch);
     }
 
-    function getEventImgUrls() {
-      return Array.from(document.querySelectorAll('#ev-img-rows .ev-img-input'))
-        .map(i => i.value.trim()).filter(u => u);
+    // ─── Photo mode toggles ───
+    let evPhotoMode = 'url', nsPhotoMode = 'url';
+    function setEvPhotoMode(mode) {
+      evPhotoMode = mode;
+      document.getElementById('ev-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ev-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ev-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ev-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
     }
-    function getNewsImgUrls() {
-      return Array.from(document.querySelectorAll('#ns-img-rows .ns-img-input'))
-        .map(i => i.value.trim()).filter(u => u);
+    function setNsPhotoMode(mode) {
+      nsPhotoMode = mode;
+      document.getElementById('ns-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ns-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ns-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ns-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
     }
+    function previewEvFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ev-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+    function previewNsFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ns-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    // ─── Upload helper shared ───
+    async function uploadImageFile(file) {
+      const fd = new FormData(); fd.append('file', file);
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      const url = data.url;
+      return url.startsWith('http') ? url : `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
+    function convertDriveUrl(url) {
+      if (!url || !url.includes('drive.google.com')) return url;
+      const m = url.match(/\/d\/([\w-]+)/);
+      return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : url;
+    }
+
+    async function getEventImgUrls() {
+      let mainUrl = '';
+      if (evPhotoMode === 'file') {
+        const file = document.getElementById('ev-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ev-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ev-img-rows .ev-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+    async function getNewsImgUrls() {
+      let mainUrl = '';
+      if (nsPhotoMode === 'file') {
+        const file = document.getElementById('ns-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ns-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ns-img-rows .ns-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+
     function addImgRow(containerId) {
       const c = document.getElementById(containerId);
       const cls = containerId === 'ev-img-rows' ? 'ev-img-input' : 'ns-img-input';
       const div = document.createElement('div');
       div.className = 'flex gap-2 mb-2';
-      div.innerHTML = `<input type="url" class="form-input ${cls}" placeholder="https://..." style="flex:1"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'${containerId}')" title="Remove">✕</button>`;
+      div.innerHTML = `<input type="url" class="form-input ${cls}" placeholder="https://... (additional photo URL)" style="flex:1"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'${containerId}')" title="Remove">✕</button>`;
       c.appendChild(div);
     }
     function removeImgRow(btn, containerId) {
@@ -1014,15 +1112,15 @@
       btn.parentElement.remove();
     }
     function previewFirstEventImg() {
-      const first = document.querySelector('#ev-img-rows .ev-img-input');
+      const val = document.getElementById('ev-main-url')?.value;
       const pre = document.getElementById('ev-img-pre');
-      if (first && first.value) { pre.src = first.value; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
       else pre.classList.remove('visible');
     }
     function previewFirstNewsImg() {
-      const first = document.querySelector('#ns-img-rows .ns-img-input');
+      const val = document.getElementById('ns-main-url')?.value;
       const pre = document.getElementById('ns-img-pre');
-      if (first && first.value) { pre.src = first.value; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
       else pre.classList.remove('visible');
     }
 
@@ -1038,12 +1136,12 @@
       }
       const btn = document.getElementById('ev-submit');
       btn.textContent = 'Publishing…'; btn.disabled = true;
-      const registered_students = getStudentRows();
-      const imgs = getEventImgUrls();
-      const image_url = imgs[0] || '';
-      const extra_images = imgs.slice(1);
-      const body = { title, category: document.getElementById('ev-cat').value, event_date: date, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: loc, description: document.getElementById('ev-desc').value, image_url, extra_images, registered_students };
       try {
+        const registered_students = getStudentRows();
+        const imgs = await getEventImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ev-cat').value, event_date: date, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: loc, description: document.getElementById('ev-desc').value, image_url, extra_images, registered_students };
         await apiFetch('/api/events', { method: 'POST', body: JSON.stringify(body) });
         showToast('Event published! 🎉', 'success');
         resetEventForm();
@@ -1059,11 +1157,15 @@
 
     function resetEventForm() {
       ['ev-title', 'ev-date', 'ev-start', 'ev-end', 'ev-loc', 'ev-desc'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('ev-img-rows').innerHTML = `<div class="flex gap-2 mb-2"><input type="url" class="form-input ev-img-input" placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1" oninput="previewFirstEventImg()"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')" title="Remove">✕</button></div>`;
+      document.getElementById('ev-main-url').value = '';
+      document.getElementById('ev-main-file').value = '';
+      document.getElementById('ev-file-preview').style.display = 'none';
+      document.getElementById('ev-img-rows').innerHTML = '';
       document.getElementById('ev-img-pre').classList.remove('visible');
       document.getElementById('ev-error').classList.add('hidden');
       document.getElementById('student-rows').innerHTML = '';
       studentRowCount = 0;
+      setEvPhotoMode('url');
     }
 
     // ─── Add News ───
@@ -1078,11 +1180,11 @@
       }
       const btn = document.getElementById('ns-submit');
       btn.textContent = 'Publishing…'; btn.disabled = true;
-      const imgs = getNewsImgUrls();
-      const image_url = imgs[0] || '';
-      const extra_images = imgs.slice(1);
-      const body = { title, category: document.getElementById('ns-cat').value, excerpt, content, image_url, extra_images };
       try {
+        const imgs = await getNewsImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ns-cat').value, excerpt, content, image_url, extra_images };
         await apiFetch('/api/news', { method: 'POST', body: JSON.stringify(body) });
         showToast('Article published! 📰', 'success');
         resetNewsForm();
@@ -1098,9 +1200,13 @@
 
     function resetNewsForm() {
       ['ns-title', 'ns-excerpt', 'ns-content'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('ns-img-rows').innerHTML = `<div class="flex gap-2 mb-2"><input type="url" class="form-input ns-img-input" placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1" oninput="previewFirstNewsImg()"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')" title="Remove">✕</button></div>`;
+      document.getElementById('ns-main-url').value = '';
+      document.getElementById('ns-main-file').value = '';
+      document.getElementById('ns-file-preview').style.display = 'none';
+      document.getElementById('ns-img-rows').innerHTML = '';
       document.getElementById('ns-img-pre').classList.remove('visible');
       document.getElementById('ns-error').classList.add('hidden');
+      setNsPhotoMode('url');
     }
 
     // ─── Manage Photos (post-publish) ───
