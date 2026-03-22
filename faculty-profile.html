@@ -90,8 +90,8 @@
       <a href="index.html" class="nav-logo">RITB</a>
       <div class="nav-links">
         <a href="index.html">Home</a>
-        <a href="news-archive.html">News</a>
-        <a href="events-calendar.html">Events</a>
+        <a href="news-archive.html" class="nav-link-protected">News</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
         <a href="faculty-directory.html" class="active">Faculty</a>
       </div>
       <div class="nav-actions" id="nav-actions"></div>
@@ -265,7 +265,7 @@
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
     }
 
-    loadProfile();
+    (async () => { if (!await requireAuth()) return; loadProfile(); })();
   </script>
 </body>
 
