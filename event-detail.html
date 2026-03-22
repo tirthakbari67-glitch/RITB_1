@@ -373,7 +373,7 @@
       } catch (e) { console.error(e); }
     }
 
-    loadEvent();
+    (async () => { if (!await requireAuth()) return; loadEvent(); })();
 
     // Show attendance link for teachers / admins
     // Must run after DOMContentLoaded so the token is available in localStorage
