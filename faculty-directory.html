@@ -56,23 +56,24 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">RITB</a>
-      <div class="nav-links">
+      <div class="nav-links" id="nav-links">
         <a href="index.html">Home</a>
-        <a href="news-archive.html">News</a>
-        <a href="events-calendar.html">Events</a>
+        <a href="news-archive.html" class="nav-link-protected">News</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
         <a href="faculty-directory.html" class="active">Faculty</a>
       </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto;margin-right:1rem">
+        <span class="material-symbols-rounded">menu</span>
+      </button>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
   </nav>
 
   <section class="page-top"
-    style="background:linear-gradient(135deg,var(--surface-container-low) 0%,var(--surface) 100%);padding-top:100px;padding-bottom:3rem">
+    style="background:linear-gradient(135deg,var(--surface-container-low) 0%,var(--surface) 100%);padding-top:5rem;padding-bottom:3rem">
     <div class="container text-center">
-      <h1 class="display-md font-display" style="margin-bottom:1rem;color:var(--primary)">Meet the Minds Behind the
-        Research</h1>
-      <p class="body-lg text-muted" style="max-width:640px;margin:0 auto">Discover the dedicated educators, researchers,
-        and mentors shaping the next generation of leaders at RITB.</p>
+      <h1 class="display-md font-display" style="margin-bottom:1rem;color:var(--primary)">Meet the Minds Behind the Research</h1>
+      <p class="body-lg text-muted" style="max-width:640px;margin:0 auto">Discover the dedicated educators, researchers, and mentors shaping the next generation of leaders at RITB.</p>
     </div>
   </section>
 
@@ -150,19 +151,19 @@
           container.innerHTML = list.map(f => `
         <a href="faculty-profile.html?id=${f.id}" class="faculty-card">
           <img class="faculty-avatar" src="${f.photo_url}" alt="${f.name}" onerror="imgFallback(this,'faculty')">
-          <div>
+          <div style="min-width: 0;">
             <h2 class="title-lg" style="margin-bottom:0.25rem;color:var(--primary)">${f.name}</h2>
             <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.75rem">
               <span class="font-weight-bold" style="font-size:0.9rem">${f.title}</span>
               <span style="color:var(--outline-variant)">|</span>
               <span class="text-muted" style="font-size:0.9rem">${f.department}</span>
             </div>
-            <p class="body-md text-muted" style="margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${f.bio
+            <p class="body-md text-muted" style="margin-bottom:1rem;overflow:hidden;word-break:break-word;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical">${f.bio
               ? f.bio
               : '<span style="background:var(--surface-container);color:var(--on-surface-variant);font-size:.8rem;padding:.2rem .65rem;border-radius:999px;display:inline-flex;align-items:center;gap:.3rem"><span class=\'material-symbols-rounded\' style=\'font-size:.9rem\'>schedule</span>Pending admin approval</span>'
             }</p>
-            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
-              ${(f.research_areas || '').split(',').filter(x => x).map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;overflow:hidden">
+              ${(f.research_areas || '').split(',').filter(x => x).map(r => `<span class="chip chip-secondary" style="max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.trim()}</span>`).join('')}
             </div>
           </div>
         </a>
@@ -171,7 +172,7 @@
       } catch (e) { console.error(e); }
     }
 
-    loadFaculty();
+    (async () => { if (!await requireAuth()) return; loadFaculty(); })();
   </script>
 </body>
 
