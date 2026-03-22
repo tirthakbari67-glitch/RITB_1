@@ -186,9 +186,18 @@
         showToast(`Welcome back, ${res.user.name}!`, 'success');
         const role = res.user.role;
         setTimeout(() => {
-          if (role === 'admin') goTo('admin.html');
-          else if (role === 'teacher') goTo('teacher-dashboard.html');
-          else goTo('index.html');
+          // Redirect to where they were trying to go (set by requireAuth)
+          const savedRedirect = sessionStorage.getItem('redirectAfterLogin');
+          sessionStorage.removeItem('redirectAfterLogin');
+          if (savedRedirect && !savedRedirect.includes('login.html')) {
+            window.location.href = savedRedirect;
+          } else if (role === 'admin') {
+            goTo('admin.html');
+          } else if (role === 'teacher') {
+            goTo('teacher-dashboard.html');
+          } else {
+            goTo('index.html');
+          }
         }, 800);
       } catch (e) {
         showErr('login-error', e.message || 'Invalid password.');
