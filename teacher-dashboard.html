@@ -382,10 +382,25 @@
             <div class="char-count"><span id="p-bio-count">0</span>/600</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Profile Photo URL</label>
-            <input id="p-photo" type="url" class="form-input" placeholder="https://..."
-              oninput="previewImg(this,'p-photo-pre')">
-            <img id="p-photo-pre" class="img-preview" alt="Photo preview">
+            <label class="form-label">Profile Photo</label>
+            <!-- Toggle -->
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="pp-btn-url" onclick="setPpPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="pp-btn-file" onclick="setPpPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <!-- URL mode -->
+            <div id="pp-url-wrap">
+              <input id="p-photo" type="url" class="form-input"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewImg(this,'p-photo-pre')">
+            </div>
+            <!-- File mode -->
+            <div id="pp-file-wrap" style="display:none">
+              <input id="pp-file-input" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewPpFile(this)">
+            </div>
+            <img id="p-photo-pre" class="img-preview" alt="Photo preview" style="margin-top:.5rem">
           </div>
           <button class="btn btn-primary btn-pill" onclick="saveProfile()">
             <span class="material-symbols-rounded" style="font-size:1rem">save</span> Save Profile
@@ -772,11 +787,14 @@
       <div style="padding:1rem;background:var(--surface-container);border-radius:var(--radius-md);margin-bottom:1rem">
         <p class="label-sm text-muted" style="margin-bottom:.5rem">➕ Add a New Photo</p>
         <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
-          <button type="button" class="photo-toggle-btn active" id="mp-btn-url" onclick="setMpAddMode('url')">🔗 Drive / URL</button>
-          <button type="button" class="photo-toggle-btn" id="mp-btn-file" onclick="setMpAddMode('file')">📁 Upload from Device</button>
+          <button type="button" class="photo-toggle-btn active" id="mp-btn-url" onclick="setMpAddMode('url')">🔗 Drive /
+            URL</button>
+          <button type="button" class="photo-toggle-btn" id="mp-btn-file" onclick="setMpAddMode('file')">📁 Upload from
+            Device</button>
         </div>
         <div id="mp-url-wrap" style="display:flex;gap:.5rem">
-          <input type="url" class="form-input" id="mp-new-url" placeholder="https://drive.google.com/... or direct image URL" style="flex:1">
+          <input type="url" class="form-input" id="mp-new-url"
+            placeholder="https://drive.google.com/... or direct image URL" style="flex:1">
           <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Add</button>
         </div>
         <div id="mp-file-wrap" style="display:none;flex-direction:column;gap:.5rem">
@@ -785,7 +803,8 @@
               onchange="(()=>{const f=this.files[0];if(f){const r=new FileReader();r.onload=e=>{const img=document.getElementById('mp-new-file-preview');img.src=e.target.result;img.style.display='block';};r.readAsDataURL(f);}})()">
             <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Upload & Add</button>
           </div>
-          <img id="mp-new-file-preview" src="" alt="" style="display:none;width:80px;height:56px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--outline-variant)">
+          <img id="mp-new-file-preview" src="" alt=""
+            style="display:none;width:80px;height:56px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--outline-variant)">
         </div>
       </div>
 
@@ -863,15 +882,13 @@
 
     async function loadDashData() {
       try {
-        const [events, news, faculty] = await Promise.all([
-          apiFetch('/api/events'),
-          apiFetch('/api/news'),
-          apiFetch('/api/faculty')
+        const [myEvents, myNews, myFaculty] = await Promise.all([
+          apiFetch('/api/events/my').catch(() => []),
+          apiFetch('/api/news/my').catch(() => []),
+          apiFetch('/api/faculty/me').catch(() => null)
         ]);
 
-        const myEvents = events.filter(e => e.organizer_id === currentUser.id);
-        const myNews = news.filter(n => n.author_id === currentUser.id);
-        myProfile = faculty.find(f => f.user_id === currentUser.id) || null;
+        myProfile = myFaculty || null;
 
         // Hero
         document.getElementById('hero-name').textContent = myProfile ? myProfile.name : currentUser.name;
@@ -1012,13 +1029,53 @@
     </tr>`).join('');
     }
 
+    // ─── Profile Photo Toggle (Drive/URL vs File Upload) ───
+    let ppPhotoMode = 'url';
+    function setPpPhotoMode(mode) {
+      ppPhotoMode = mode;
+      document.getElementById('pp-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('pp-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('pp-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('pp-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+    function previewPpFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('p-photo-pre');
+        img.src = e.target.result;
+        img.classList.add('visible');
+      };
+      reader.readAsDataURL(file);
+    }
+
     // ─── Profile Save ───
     async function saveProfile() {
       if (!myProfile) return showToast('No profile found. Contact admin.', 'error');
-      const body = { name: document.getElementById('p-name').value, research_areas: document.getElementById('p-research').value, bio: document.getElementById('p-bio').value, photo_url: document.getElementById('p-photo').value };
+
+      let photoUrl = '';
+      if (ppPhotoMode === 'file') {
+        const file = document.getElementById('pp-file-input').files[0];
+        if (file) {
+          try { photoUrl = await uploadImageFile(file); }
+          catch (e) { return showToast('Photo upload failed: ' + e.message, 'error'); }
+        } else {
+          // No new file chosen → keep existing photo
+          photoUrl = myProfile.photo_url || '';
+        }
+      } else {
+        photoUrl = convertDriveUrl(document.getElementById('p-photo').value.trim());
+      }
+
+      const body = {
+        name: document.getElementById('p-name').value,
+        research_areas: document.getElementById('p-research').value,
+        bio: document.getElementById('p-bio').value,
+        photo_url: photoUrl
+      };
       try {
         await apiFetch(`/api/faculty/${myProfile.id}`, { method: 'PUT', body: JSON.stringify(body) });
-        showToast('Profile saved!', 'success');
+        showToast('Profile saved! ✅', 'success');
         loadDashData();
       } catch (e) { showToast(e.message, 'error'); }
     }
@@ -1277,7 +1334,7 @@
       if (mpAddMode === 'file') {
         const file = document.getElementById('mp-new-file').files[0];
         if (!file) { showToast('Please choose a file first', 'error'); return; }
-        try { url = await uploadImageFile(file); } catch(e) { showToast(e.message, 'error'); return; }
+        try { url = await uploadImageFile(file); } catch (e) { showToast(e.message, 'error'); return; }
       } else {
         url = convertDriveUrl(document.getElementById('mp-new-url').value.trim());
         if (!url) { showToast('Please enter a URL or Drive link', 'error'); return; }
