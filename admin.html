@@ -165,6 +165,47 @@
       line-height: 1;
       margin-top: 0.5rem;
     }
+
+    /* ─── Mobile Responsive ─── */
+    @media (max-width: 768px) {
+      main { padding: 1rem !important; }
+
+      #stats-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+
+      .stat-num { font-size: 1.75rem; }
+
+      /* Make all admin tables scroll horizontally on mobile */
+      .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table-wrap table {
+        min-width: 540px; /* force horizontal scroll before text wraps */
+      }
+
+      .table-wrap th,
+      .table-wrap td {
+        white-space: nowrap;
+        padding: 0.6rem 0.75rem;
+      }
+
+      /* Stack approval action buttons vertically on very small screens */
+      td > button + button {
+        margin-top: 4px;
+      }
+
+      .tabs {
+        gap: 0.15rem;
+      }
+
+      .tab-btn {
+        font-size: 0.78rem;
+        padding: 0.45rem 0.7rem;
+      }
+    }
   </style>
 </head>
 
