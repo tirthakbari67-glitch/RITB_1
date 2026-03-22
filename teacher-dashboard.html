@@ -640,24 +640,7 @@
             <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Event
           </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Category</th>
-                <th>Date & Time</th>
-                <th>Location</th>
-                <th style="text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="my-events-tbody">
-              <tr class="empty-row">
-                <td colspan="5">Loading your events…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div id="my-events-list" style="display:flex;flex-direction:column;gap:0"></div>
       </div>
     </div>
 
@@ -670,23 +653,7 @@
             <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Article
           </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Article</th>
-                <th>Category</th>
-                <th>Published</th>
-                <th style="text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="my-news-tbody">
-              <tr class="empty-row">
-                <td colspan="4">Loading your articles…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div id="my-news-list" style="display:flex;flex-direction:column;gap:0"></div>
       </div>
     </div>
 
@@ -972,61 +939,80 @@
     }
 
     function renderMyEvents(events) {
-      const tbody = document.getElementById('my-events-tbody');
+      const container = document.getElementById('my-events-list');
       if (!events.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">You have no events yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-event')">Add your first event →</button></td></tr>`;
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
+          <span class="material-symbols-rounded" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4">event_note</span>
+          <p style="font-weight:600">No events yet.</p>
+          <button class="btn btn-primary btn-sm btn-pill" style="margin-top:.75rem" onclick="showTab('add-event')">Add your first event →</button>
+        </div>`;
         return;
       }
-      tbody.innerHTML = events.map(e => `
-    <tr>
-      <td>
-        <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
-      </td>
-      <td><span class="chip ${getCategoryColor(e.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${e.category}</span></td>
-      <td class="text-muted text-sm">${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</td>
-      <td class="text-muted text-sm">${e.location || '–'}</td>
-      <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}",${JSON.stringify(e.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
-          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManageStudents(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Manage Students">
-          <span class="material-symbols-rounded" style="font-size:1rem">group</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openEventEdit(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Edit">
-          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="delEvent(${e.id})" title="Delete">
-          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
-        </button>
-      </td>
-    </tr>`).join('');
+      container.innerHTML = events.map(e => {
+        const eJson = JSON.stringify(e).replace(/"/g, '&quot;');
+        const extraRaw = JSON.stringify(e.extra_images || '[]').replace(/"/g, '&quot;');
+        return `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem;align-items:center">
+              <span class="chip ${getCategoryColor(e.category)} label-sm" style="font-size:0.65rem">${e.category}</span>
+              <span class="text-muted text-sm">📅 ${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</span>
+              <span class="text-muted text-sm">📍 ${e.location || '–'}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-secondary btn-sm" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}","${extraRaw}")' title="Manage Photos" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick='openManageStudents(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(e))}")))' title="Students" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">group</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick='openEventEdit(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(e))}")))' title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
+            </button>
+            <button class="btn btn-sm" onclick="delEvent(${e.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
+            </button>
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function renderMyNews(news) {
-      const tbody = document.getElementById('my-news-tbody');
+      const container = document.getElementById('my-news-list');
       if (!news.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No articles yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-news')">Write your first article →</button></td></tr>`;
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
+          <span class="material-symbols-rounded" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4">edit_note</span>
+          <p style="font-weight:600">No articles yet.</p>
+          <button class="btn btn-primary btn-sm btn-pill" style="margin-top:.75rem" onclick="showTab('add-news')">Write your first article →</button>
+        </div>`;
         return;
       }
-      tbody.innerHTML = news.map(n => `
-    <tr>
-      <td>
-        <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
-      </td>
-      <td><span class="chip ${getCategoryColor(n.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${n.category}</span></td>
-      <td class="text-muted text-sm">${formatDateShort(n.published_at)}</td>
-      <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}",${JSON.stringify(n.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
-          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openNewsEdit(${JSON.stringify(n).replace(/'/g, "&#39;")})' title="Edit">
-          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="delNews(${n.id})" title="Delete">
-          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
-        </button>
-      </td>
-    </tr>`).join('');
+      container.innerHTML = news.map(n => {
+        const extraRaw = JSON.stringify(n.extra_images || '[]').replace(/"/g, '&quot;');
+        return `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem;align-items:center">
+              <span class="chip ${getCategoryColor(n.category)} label-sm" style="font-size:0.65rem">${n.category}</span>
+              <span class="text-muted text-sm">📅 ${formatDateShort(n.published_at)}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-secondary btn-sm" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}","${extraRaw}")' title="Manage Photos" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick='openNewsEdit(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(n))}")))' title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
+            </button>
+            <button class="btn btn-sm" onclick="delNews(${n.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
+            </button>
+          </div>
+        </div>`;
+      }).join('');
     }
 
     // ─── Profile Photo Toggle (Drive/URL vs File Upload) ───
