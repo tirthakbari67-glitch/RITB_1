@@ -90,9 +90,9 @@
       <a href="index.html" class="nav-logo">RITB</a>
       <div class="nav-links" id="nav-links">
         <a href="index.html">Home</a>
-        <a href="news-archive.html">News</a>
+        <a href="news-archive.html" class="nav-link-protected">News</a>
         <a href="events-calendar.html" class="active">Events</a>
-        <a href="faculty-directory.html">Faculty</a>
+        <a href="faculty-directory.html" class="nav-link-protected">Faculty</a>
       </div>
       <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto; margin-right: 1rem;">
         <span class="material-symbols-rounded">menu</span>
@@ -218,17 +218,13 @@
         sidebar.innerHTML = '<p class="text-muted text-sm">No events found.</p>';
         return;
       }
-      // Sort and take top 5 upcoming from today onwards if showing all
+      // Sort and show only upcoming events (today onwards)
       let display = events;
       if (events === allEvents) {
-        const now = new Date();
-        display = events.filter(e => {
-          if (!e.event_date || !e.time_end) return true;
-          const [hours, minutes] = e.time_end.split(':');
-          const endDateTime = new Date(e.event_date);
-          endDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
-          return endDateTime >= now;
-        }).slice(0, 5);
+        const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        display = events
+          .filter(e => e.event_date && e.event_date >= todayStr)
+          .slice(0, 5);
         document.getElementById('sidebar-title').textContent = 'Upcoming Events';
       }
 
