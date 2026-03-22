@@ -836,6 +836,29 @@
   <script src="app.js"></script>
   <script>
     let myProfile = null;
+    let _myEvents = [];   // cache for safe ID-based onclick lookups
+    let _myNews   = [];   // cache for safe ID-based onclick lookups
+
+    // Lookup helpers — avoids JSON-in-onclick escaping bugs
+    function _evt(id) { return _myEvents.find(e => e.id === id) || {}; }
+    function _nws(id) { return _myNews.find(n => n.id === id) || {}; }
+
+    function _openEvtEdit(id)   { openEventEdit(_evt(id)); }
+    function _openEvtStudents(id) { openManageStudents(_evt(id)); }
+    function _openEvtPhotos(id) {
+      const e = _evt(id);
+      let extras = e.extra_images;
+      if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch { extras = []; } }
+      openManagePhotos('event', id, e.image_url || '', extras || []);
+    }
+    function _openNwsEdit(id)   { openNewsEdit(_nws(id)); }
+    function _openNwsPhotos(id) {
+      const n = _nws(id);
+      let extras = n.extra_images;
+      if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch { extras = []; } }
+      openManagePhotos('news', id, n.image_url || '', extras || []);
+    }
+
 
     // ─── Init ───
     async function initDashboard() {
@@ -939,6 +962,7 @@
     }
 
     function renderMyEvents(events) {
+      _myEvents = events;   // cache for safe lookups
       const container = document.getElementById('my-events-list');
       if (!events.length) {
         container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
@@ -948,10 +972,7 @@
         </div>`;
         return;
       }
-      container.innerHTML = events.map(e => {
-        const eJson = JSON.stringify(e).replace(/"/g, '&quot;');
-        const extraRaw = JSON.stringify(e.extra_images || '[]').replace(/"/g, '&quot;');
-        return `
+      container.innerHTML = events.map(e => `
         <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
           <div style="flex:1;min-width:0">
             <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
@@ -962,24 +983,24 @@
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-secondary btn-sm" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}","${extraRaw}")' title="Manage Photos" style="padding:.4rem .6rem">
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtPhotos(${e.id})" title="Manage Photos" style="padding:.4rem .6rem">
               <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
             </button>
-            <button class="btn btn-secondary btn-sm" onclick='openManageStudents(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(e))}")))' title="Students" style="padding:.4rem .6rem">
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtStudents(${e.id})" title="Students" style="padding:.4rem .6rem">
               <span class="material-symbols-rounded" style="font-size:1.1rem">group</span>
             </button>
-            <button class="btn btn-secondary btn-sm" onclick='openEventEdit(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(e))}")))' title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtEdit(${e.id})" title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
               <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
             </button>
             <button class="btn btn-sm" onclick="delEvent(${e.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
               <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
             </button>
           </div>
-        </div>`;
-      }).join('');
+        </div>`).join('');
     }
 
     function renderMyNews(news) {
+      _myNews = news;   // cache for safe lookups
       const container = document.getElementById('my-news-list');
       if (!news.length) {
         container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
@@ -989,9 +1010,7 @@
         </div>`;
         return;
       }
-      container.innerHTML = news.map(n => {
-        const extraRaw = JSON.stringify(n.extra_images || '[]').replace(/"/g, '&quot;');
-        return `
+      container.innerHTML = news.map(n => `
         <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
           <div style="flex:1;min-width:0">
             <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
@@ -1001,18 +1020,17 @@
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button class="btn btn-secondary btn-sm" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}","${extraRaw}")' title="Manage Photos" style="padding:.4rem .6rem">
+            <button class="btn btn-secondary btn-sm" onclick="_openNwsPhotos(${n.id})" title="Manage Photos" style="padding:.4rem .6rem">
               <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
             </button>
-            <button class="btn btn-secondary btn-sm" onclick='openNewsEdit(JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(n))}")))' title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+            <button class="btn btn-secondary btn-sm" onclick="_openNwsEdit(${n.id})" title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
               <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
             </button>
             <button class="btn btn-sm" onclick="delNews(${n.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
               <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
             </button>
           </div>
-        </div>`;
-      }).join('');
+        </div>`).join('');
     }
 
     // ─── Profile Photo Toggle (Drive/URL vs File Upload) ───
