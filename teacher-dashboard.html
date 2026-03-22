@@ -4,175 +4,1436 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Faculty Directory | RITB</title>
+  <title>Teacher Dashboard | RITB</title>
+  <meta name="description" content="Teacher portal to manage events, news, and your academic profile.">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
   <style>
-    .faculty-card {
+    /* ─── Dashboard layout ─── */
+    .dash-hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-container) 100%);
+      padding: 3rem 0 0;
+      margin-top: 72px;
+    }
+
+    .dash-hero-inner {
       display: flex;
-      gap: 1.5rem;
-      padding: 1.5rem;
-      background: var(--surface-container-lowest);
-      border-radius: var(--radius-xl);
-      transition: all var(--transition);
-      border: 1px solid transparent;
-      text-decoration: none;
+      align-items: flex-end;
+      gap: 2.5rem;
+      flex-wrap: wrap;
     }
 
-    .faculty-card:hover {
-      transform: translateY(-3px);
-      box-shadow: var(--shadow-card);
-      border-color: var(--primary-fixed);
-    }
-
-    .faculty-avatar {
-      width: 120px;
-      height: 120px;
+    .dash-avatar {
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       object-fit: cover;
+      border: 4px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       flex-shrink: 0;
-      background: var(--surface-container);
-      border: 3px solid var(--surface);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
-    @media(max-width:600px) {
-      .faculty-card {
-        flex-direction: column;
-        text-align: center;
-        align-items: center;
+    .dash-tab-bar {
+      background: var(--surface-container-lowest);
+      border-radius: 0;
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--surface-container);
+      overflow-x: auto;
+    }
+
+    .dash-tab {
+      padding: 1rem 1.75rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: var(--on-surface-variant);
+      border-bottom: 2.5px solid transparent;
+      margin-bottom: -2px;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .dash-tab:hover {
+      color: var(--primary);
+      background: var(--primary-fixed);
+    }
+
+    .dash-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .dash-panel {
+      display: none;
+      padding: 2.5rem 0;
+    }
+
+    .dash-panel.active {
+      display: block;
+      animation: fadeUp 0.25s ease;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
       }
 
-      .faculty-avatar {
-        width: 100px;
-        height: 100px;
+      to {
+        opacity: 1;
+        transform: translateY(0)
       }
+    }
+
+    /* ─── Forms ─── */
+    .form-section {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .form-section h3 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+      color: var(--primary);
+    }
+
+    .form-section .subtitle {
+      color: var(--on-surface-variant);
+      margin-bottom: 1.75rem;
+      font-size: 0.9375rem;
+    }
+
+    .img-preview {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: var(--radius-md);
+      object-fit: cover;
+      background: var(--surface-container);
+      display: none;
+      margin-top: 0.75rem;
+    }
+
+    .img-preview.visible {
+      display: block;
+    }
+
+    .char-count {
+      font-size: 0.75rem;
+      color: var(--on-surface-variant);
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+
+    /* ─── Management Tables ─── */
+    .manage-card {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    .manage-head {
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--surface-container);
+    }
+
+    .empty-row td {
+      padding: 2.5rem;
+      text-align: center;
+      color: var(--on-surface-variant);
+    }
+
+    /* ─── Profile panel ─── */
+    .profile-edit-section {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ─── Profile grid: stacks cleanly, no squishing ─── */
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .profile-view-card {
+      position: sticky;
+      top: 88px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    @media (max-width: 860px) {
+      .profile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-view-card {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    /* ─── Student rows ─── */
+    .student-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .student-row .form-input {
+      margin: 0;
+    }
+
+    .del-student-btn {
+      background: var(--surface-container);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+      color: var(--error);
+      font-size: 1.1rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .del-student-btn:hover {
+      background: var(--error-container);
+    }
+
+    /* ─── Bio clamping in profile view card ─── */
+    .profile-bio-clamp {
+      display: -webkit-box;
+      -webkit-line-clamp: 5;
+      line-clamp: 5;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.7;
+      max-height: calc(1.7em * 5);
+      word-break: break-all;
+      overflow-wrap: break-word;
+    }
+
+    /* ─── Table Text Truncation ─── */
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      /* forces cells to respect widths */
+    }
+
+    th,
+    td {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Let the Actions column take only what it needs, allocate the rest */
+    th:last-child,
+    td:last-child {
+      width: 140px;
+    }
+
+    /* ─── General Long Text Prevention ─── */
+    .form-input,
+    .form-select {
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .flex-wrap {
+      flex-wrap: wrap;
+    }
+
+    /* Prevent flex and grid items from expanding beyond their boundaries due to long text */
+    .flex>*,
+    .profile-grid>*,
+    .dash-hero-inner>*,
+    .student-row>* {
+      min-width: 0;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    span,
+    div,
+    a,
+    td {
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+      word-break: break-word;
     }
   </style>
 </head>
 
 <body>
+
+  <!-- ═══ NAV (same as main site) ═══ -->
   <nav class="nav">
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">RITB</a>
-      <div class="nav-links" id="nav-links">
+      <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="news-archive.html">News</a>
         <a href="events-calendar.html">Events</a>
-        <a href="faculty-directory.html" class="active">Faculty</a>
+        <a href="faculty-directory.html">Faculty</a>
       </div>
-      <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto;margin-right:1rem">
-        <span class="material-symbols-rounded">menu</span>
-      </button>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
   </nav>
 
-  <section class="page-top"
-    style="background:linear-gradient(135deg,var(--surface-container-low) 0%,var(--surface) 100%);padding-top:5rem;padding-bottom:3rem">
-    <div class="container text-center">
-      <h1 class="display-md font-display" style="margin-bottom:1rem;color:var(--primary)">Meet the Minds Behind the Research</h1>
-      <p class="body-lg text-muted" style="max-width:640px;margin:0 auto">Discover the dedicated educators, researchers, and mentors shaping the next generation of leaders at RITB.</p>
-    </div>
-  </section>
-
-  <section class="section-sm">
-    <div class="container-narrow">
-
-      <div
-        style="background:var(--surface-container-highest);padding:1rem;border-radius:var(--radius-full);display:flex;gap:1rem;margin-bottom:3rem">
-        <div class="search-bar" style="flex:2;background:var(--surface-container-lowest)">
-          <span class="material-symbols-rounded text-muted">search</span>
-          <input type="text" id="search-input" placeholder="Search by name, research area..." oninput="loadFaculty()">
+  <!-- ═══ HERO BANNER ═══ -->
+  <div class="dash-hero">
+    <div class="container">
+      <div class="dash-hero-inner">
+        <img id="avatar" class="dash-avatar" src="" alt="Profile Photo" onerror="imgFallback(this,'faculty')">
+        <div style="padding-bottom:2rem">
+          <span class="chip chip-tertiary label-sm" style="margin-bottom:0.75rem;display:inline-flex">Faculty
+            Portal</span>
+          <h1 class="display-sm font-display" style="color:#fff;margin-bottom:0.25rem" id="hero-name">Loading…</h1>
+          <p style="color:rgba(255,255,255,0.75);font-size:1rem" id="hero-meta">Department · Title</p>
         </div>
-        <div style="flex:1">
-          <select id="dept-filter" class="form-select"
-            style="background:var(--surface-container-lowest);height:100%;border-radius:var(--radius-full)"
-            onchange="loadFaculty()">
-            <option value="">All Departments</option>
-            <option>Computer Science</option>
-            <option>Engineering & Robotics</option>
-            <option>Life Sciences</option>
-            <option>Business & Economics</option>
-            <option>Arts & Humanities</option>
-            <option>Physics & Astronomy</option>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="dash-tab-bar">
+      <div class="container" style="display:flex;padding-top:0;padding-bottom:0">
+        <button class="dash-tab active" onclick="showTab('profile')">
+          <span class="material-symbols-rounded" style="font-size:1.1rem">person</span> My Profile
+        </button>
+        <button class="dash-tab" onclick="showTab('add-event')">
+          <span class="material-symbols-rounded" style="font-size:1.1rem">event_note</span> Add Event
+        </button>
+        <button class="dash-tab" onclick="showTab('add-news')">
+          <span class="material-symbols-rounded" style="font-size:1.1rem">edit_note</span> Add News
+        </button>
+        <button class="dash-tab" onclick="showTab('my-events')">
+          <span class="material-symbols-rounded" style="font-size:1.1rem">calendar_month</span> My Events
+        </button>
+        <button class="dash-tab" onclick="showTab('my-news')">
+          <span class="material-symbols-rounded" style="font-size:1.1rem">newspaper</span> My Articles
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANELS ═══ -->
+  <div class="container">
+
+    <!-- ───── PROFILE ───── -->
+    <div id="panel-profile" class="dash-panel active">
+      <div class="profile-grid">
+
+        <!-- Profile View Card -->
+        <div class="profile-edit-section profile-view-card">
+          <h3 class="title-lg font-display mb-1">Profile Information</h3>
+          <p class="text-muted text-sm mb-4">How you appear in the faculty directory.</p>
+          <div id="profile-view">
+            <div class="skeleton" style="height:200px;border-radius:var(--radius-md)"></div>
+          </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="form-section">
+          <h3>Edit Profile</h3>
+          <p class="subtitle">Update your academic profile visible to students.</p>
+          <div class="form-group">
+            <label class="form-label">Display Name</label>
+            <input id="p-name" type="text" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Research Areas <span class="text-muted text-sm">(comma-separated)</span></label>
+            <input id="p-research" type="text" class="form-input" placeholder="Machine Learning, Robotics, HRI">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Biography</label>
+            <textarea id="p-bio" class="form-input" rows="4"
+              oninput="updateCharCount(this,'p-bio-count',600)"></textarea>
+            <div class="char-count"><span id="p-bio-count">0</span>/600</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Profile Photo URL</label>
+            <input id="p-photo" type="url" class="form-input" placeholder="https://..."
+              oninput="previewImg(this,'p-photo-pre')">
+            <img id="p-photo-pre" class="img-preview" alt="Photo preview">
+          </div>
+          <button class="btn btn-primary btn-pill" onclick="saveProfile()">
+            <span class="material-symbols-rounded" style="font-size:1rem">save</span> Save Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2rem">
+        <div
+          style="background:var(--surface-container-lowest);border-radius:var(--radius-lg);padding:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+          <div class="text-sm text-muted mb-1">My Events</div>
+          <div class="display-sm font-display text-primary" id="stat-ev">–</div>
+        </div>
+        <div
+          style="background:var(--surface-container-lowest);border-radius:var(--radius-lg);padding:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+          <div class="text-sm text-muted mb-1">My Articles</div>
+          <div class="display-sm font-display text-secondary" id="stat-ns">–</div>
+        </div>
+        <div
+          style="background:var(--surface-container-lowest);border-radius:var(--radius-lg);padding:1.75rem;box-shadow:0 2px 8px rgba(0,0,0,0.04)">
+          <div class="text-sm text-muted mb-1">Publications</div>
+          <div class="display-sm font-display" style="color:var(--tertiary-container)" id="stat-pub">–</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── ADD EVENT ───── -->
+    <div id="panel-add-event" class="dash-panel">
+      <div class="form-section" style="max-width:800px;margin:0 auto">
+        <h3>📅 Publish a New Campus Event</h3>
+        <p class="subtitle">Fill in the details below. Your event will immediately appear on the campus calendar.</p>
+
+        <div class="form-group">
+          <label class="form-label">Event Title *</label>
+          <input id="ev-title" type="text" class="form-input" placeholder="e.g. Annual Dean's Lecture on AI & Society"
+            required>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="ev-cat" class="form-select">
+              <option value="Academic">Academic</option>
+              <option value="Research">Research & Innovation</option>
+              <option value="Athletics">Athletics</option>
+              <option value="Social">Social</option>
+              <option value="Career">Career & Professional</option>
+              <option value="Arts">Arts & Culture</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date *</label>
+            <input id="ev-date" type="date" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Time *</label>
+            <input id="ev-start" type="time" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Time</label>
+            <input id="ev-end" type="time" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Location / Venue *</label>
+          <input id="ev-loc" type="text" class="form-input" placeholder="Forbes Auditorium, Room 101" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description *</label>
+          <textarea id="ev-desc" class="form-input" rows="5"
+            placeholder="Describe the event — what attendees can expect, speaker info, schedule highlights…"
+            oninput="updateCharCount(this,'ev-desc-count',1500)"></textarea>
+          <div class="char-count"><span id="ev-desc-count">0</span>/1500</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Event Photos</label>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the main banner. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
+
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Main / Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ev-btn-url" onclick="setEvPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ev-btn-file" onclick="setEvPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ev-photo-url-wrap">
+              <input type="url" class="form-input ev-img-input" id="ev-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstEventImg()"
+                style="width:100%">
+            </div>
+            <div id="ev-photo-file-wrap" style="display:none">
+              <input id="ev-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewEvFile(this)">
+              <img id="ev-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
+            </div>
+          </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ev-img-rows"></div>
+          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ev-img-rows')"
+            style="margin-top:0.5rem">
+            <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
+          </button>
+          <img id="ev-img-pre" class="img-preview" alt="Event main photo preview" style="margin-top:0.75rem">
+        </div>
+
+        <!-- Registered Students Section -->
+        <div class="form-group"
+          style="border-top:1px solid var(--surface-container);padding-top:1.5rem;margin-top:0.5rem">
+          <label class="form-label" style="margin-bottom:0.75rem;display:block">
+            <span class="material-symbols-rounded" style="font-size:1rem;vertical-align:middle">group</span>
+            Registered Students <span class="text-muted text-sm">(optional)</span>
+          </label>
+          <p class="form-hint" style="margin-bottom:1rem">Add the names and branches of students participating in this
+            event.</p>
+          <div id="student-rows"></div>
+          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addStudentRow()"
+            style="margin-top:0.5rem">
+            <span class="material-symbols-rounded" style="font-size:1rem">person_add</span> Add Student
+          </button>
+        </div>
+
+        <div id="ev-error" class="form-error hidden" style="margin-bottom:1rem"></div>
+        <div class="flex gap-3">
+          <button class="btn btn-primary btn-lg btn-pill" id="ev-submit" onclick="submitEvent()">
+            <span class="material-symbols-rounded">publish</span> Publish Event
+          </button>
+          <button class="btn btn-secondary btn-lg" onclick="resetEventForm()">Clear Form</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ───── ADD NEWS ───── -->
+    <div id="panel-add-news" class="dash-panel">
+      <div class="form-section" style="max-width:800px;margin:0 auto">
+        <h3>📰 Publish a News Article</h3>
+        <p class="subtitle">Write a campus news article. It will appear in the News Archive immediately upon submission.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label">Article Headline *</label>
+          <input id="ns-title" type="text" class="form-input"
+            placeholder="e.g. Research Team Wins National Grant for AI Ethics Study" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select id="ns-cat" class="form-select">
+            <option value="Academics">Academics</option>
+            <option value="Research">Research</option>
+            <option value="Athletics">Athletics</option>
+            <option value="Social">Social</option>
+            <option value="Arts">Arts</option>
           </select>
         </div>
-      </div>
 
-      <div style="margin-bottom:1.5rem">
-        <h3 class="title-md" id="result-count">Loading faculty...</h3>
-      </div>
+        <div class="form-group">
+          <label class="form-label">Excerpt / Summary *</label>
+          <textarea id="ns-excerpt" class="form-input" rows="2"
+            placeholder="A single compelling sentence that summarises the story (shown in cards and search)"
+            oninput="updateCharCount(this,'ns-ex-count',200)"></textarea>
+          <div class="char-count"><span id="ns-ex-count">0</span>/200</div>
+        </div>
 
-      <div style="display:flex;flex-direction:column;gap:1.5rem" id="faculty-list">
-        <!-- Loading Skeletons -->
-        <div class="skeleton" style="height:168px;border-radius:var(--radius-xl)"></div>
-        <div class="skeleton" style="height:168px;border-radius:var(--radius-xl)"></div>
-        <div class="skeleton" style="height:168px;border-radius:var(--radius-xl)"></div>
-      </div>
+        <div class="form-group">
+          <label class="form-label">Full Article Content *</label>
+          <textarea id="ns-content" class="form-input" rows="10"
+            placeholder="Write the full article here. You can use HTML tags like &lt;h3&gt;, &lt;p&gt;, &lt;strong&gt;, &lt;em&gt; for formatting."
+            oninput="updateCharCount(this,'ns-ct-count',10000)"></textarea>
+          <div class="char-count"><span id="ns-ct-count">0</span>/10000</div>
+        </div>
 
-      <div class="empty-state hidden" id="empty-state">
-        <span class="material-symbols-rounded">groups</span>
-        <p class="title-md">No faculty members found</p>
-        <p class="text-muted">Try removing some limits or checking your spelling.</p>
-      </div>
+        <div class="form-group">
+          <label class="form-label">Article Photos</label>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the cover image. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
 
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ns-btn-url" onclick="setNsPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ns-btn-file" onclick="setNsPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ns-photo-url-wrap">
+              <input type="url" class="form-input ns-img-input" id="ns-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstNewsImg()"
+                style="width:100%">
+            </div>
+            <div id="ns-photo-file-wrap" style="display:none">
+              <input id="ns-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewNsFile(this)">
+              <img id="ns-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
+            </div>
+          </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ns-img-rows"></div>
+          <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ns-img-rows')"
+            style="margin-top:0.5rem">
+            <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
+          </button>
+          <img id="ns-img-pre" class="img-preview" alt="Article photo preview" style="margin-top:0.75rem">
+        </div>
+
+        <div id="ns-error" class="form-error hidden" style="margin-bottom:1rem"></div>
+        <div class="flex gap-3">
+          <button class="btn btn-primary btn-lg btn-pill" id="ns-submit" onclick="submitNews()">
+            <span class="material-symbols-rounded">publish</span> Publish Article
+          </button>
+          <button class="btn btn-secondary btn-lg" onclick="resetNewsForm()">Clear Form</button>
+        </div>
+      </div>
     </div>
-  </section>
 
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-bottom">© 2024 RITB. All rights reserved.</div>
+    <!-- ───── MY EVENTS ───── -->
+    <div id="panel-my-events" class="dash-panel">
+      <div class="manage-card">
+        <div class="manage-head">
+          <h2 class="title-lg font-display">My Campus Events</h2>
+          <button class="btn btn-primary btn-sm btn-pill" onclick="showTab('add-event')">
+            <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Event
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Category</th>
+                <th>Date & Time</th>
+                <th>Location</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="my-events-tbody">
+              <tr class="empty-row">
+                <td colspan="5">Loading your events…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
-  </footer>
+
+    <!-- ───── MY NEWS ───── -->
+    <div id="panel-my-news" class="dash-panel">
+      <div class="manage-card">
+        <div class="manage-head">
+          <h2 class="title-lg font-display">My Published Articles</h2>
+          <button class="btn btn-primary btn-sm btn-pill" onclick="showTab('add-news')">
+            <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Article
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Category</th>
+                <th>Published</th>
+                <th style="text-align:right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="my-news-tbody">
+              <tr class="empty-row">
+                <td colspan="4">Loading your articles…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- ═══ EDIT MODALS ═══ -->
+  <!-- Edit Event Modal -->
+  <div class="modal-backdrop" id="modal-ev">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modal-ev')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-4">✏️ Edit Event</h3>
+      <input type="hidden" id="mev-id">
+      <div class="form-group"><label class="form-label">Title</label><input id="mev-title" type="text"
+          class="form-input"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group"><label class="form-label">Date</label><input id="mev-date" type="date"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Location</label><input id="mev-loc" type="text"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">Start Time</label><input id="mev-start" type="time"
+            class="form-input"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input id="mev-end" type="time"
+            class="form-input"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea id="mev-desc" class="form-input"
+          rows="4"></textarea></div>
+      <div class="form-group"><label class="form-label">Banner Image URL</label><input id="mev-img" type="url"
+          class="form-input" oninput="previewImg(this,'mev-img-pre')"><img id="mev-img-pre" class="img-preview" alt="">
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-primary" onclick="saveEventEdit()">Save Changes</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-ev')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit News Modal -->
+  <div class="modal-backdrop" id="modal-ns">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modal-ns')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-4">✏️ Edit Article</h3>
+      <input type="hidden" id="mns-id">
+      <div class="form-group"><label class="form-label">Headline</label><input id="mns-title" type="text"
+          class="form-input"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select id="mns-cat" class="form-select">
+          <option value="Academics">Academics</option>
+          <option value="Research">Research</option>
+          <option value="Athletics">Athletics</option>
+          <option value="Social">Social</option>
+          <option value="Arts">Arts</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Excerpt</label><textarea id="mns-excerpt" class="form-input"
+          rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Content</label><textarea id="mns-content" class="form-input"
+          rows="6"></textarea></div>
+      <div class="form-group"><label class="form-label">Cover Image URL</label><input id="mns-img" type="url"
+          class="form-input" oninput="previewImg(this,'mns-img-pre')"><img id="mns-img-pre" class="img-preview" alt="">
+      </div>
+      <div class="flex gap-3 mt-4">
+        <button class="btn btn-primary" onclick="saveNewsEdit()">Save Changes</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-ns')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Manage Students Modal ── -->
+  <div class="modal-backdrop" id="modal-ms">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('modal-ms')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-1">👥 Manage Registered Students</h3>
+      <p class="text-muted text-sm mb-4" id="ms-event-title"></p>
+      <div id="ms-student-rows" style="max-height:320px;overflow-y:auto;margin-bottom:1rem"></div>
+      <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addManageStudentRow()"
+        style="margin-bottom:1.5rem">
+        <span class="material-symbols-rounded" style="font-size:1rem">person_add</span> Add Student
+      </button>
+      <div class="flex gap-3">
+        <button class="btn btn-primary" onclick="saveManageStudents()">Save Changes</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-ms')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Manage Photos Modal ── -->
+  <div class="modal-backdrop" id="modal-mp">
+    <div class="modal" style="max-width:680px">
+      <button class="modal-close" onclick="closeModal('modal-mp')"><span
+          class="material-symbols-rounded">close</span></button>
+      <h3 class="title-lg mb-1">📷 Manage Photos</h3>
+      <p class="text-muted text-sm mb-4" id="mp-item-title"></p>
+
+      <!-- Add new photo section -->
+      <div style="padding:1rem;background:var(--surface-container);border-radius:var(--radius-md);margin-bottom:1rem">
+        <p class="label-sm text-muted" style="margin-bottom:.5rem">➕ Add a New Photo</p>
+        <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+          <button type="button" class="photo-toggle-btn active" id="mp-btn-url" onclick="setMpAddMode('url')">🔗 Drive / URL</button>
+          <button type="button" class="photo-toggle-btn" id="mp-btn-file" onclick="setMpAddMode('file')">📁 Upload from Device</button>
+        </div>
+        <div id="mp-url-wrap" style="display:flex;gap:.5rem">
+          <input type="url" class="form-input" id="mp-new-url" placeholder="https://drive.google.com/... or direct image URL" style="flex:1">
+          <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Add</button>
+        </div>
+        <div id="mp-file-wrap" style="display:none;flex-direction:column;gap:.5rem">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input id="mp-new-file" type="file" class="form-input" accept="image/*" style="flex:1;padding:.5rem"
+              onchange="(()=>{const f=this.files[0];if(f){const r=new FileReader();r.onload=e=>{const img=document.getElementById('mp-new-file-preview');img.src=e.target.result;img.style.display='block';};r.readAsDataURL(f);}})()">
+            <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Upload & Add</button>
+          </div>
+          <img id="mp-new-file-preview" src="" alt="" style="display:none;width:80px;height:56px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--outline-variant)">
+        </div>
+      </div>
+
+      <!-- Current photos list -->
+      <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Current Photos (first = main banner)</p>
+      <div id="mp-photo-rows" style="margin-bottom:1rem;max-height:200px;overflow-y:auto"></div>
+
+      <!-- Live preview strip -->
+      <div id="mp-preview-strip" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem"></div>
+
+      <div class="flex gap-3">
+        <button class="btn btn-primary" onclick="saveManagePhotos()">Save Photos</button>
+        <button class="btn btn-secondary" onclick="closeModal('modal-mp')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--surface-container-lowest);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      width: 100%;
+      max-width: 620px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      border: none;
+      background: var(--surface-container);
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
 
   <script src="app.js"></script>
   <script>
-    async function loadFaculty() {
-      const q = document.getElementById('search-input').value;
-      const d = document.getElementById('dept-filter').value;
-      const params = new URLSearchParams();
-      if (q) params.set('search', q);
-      if (d) params.set('department', d);
+    let myProfile = null;
 
+    // ─── Init ───
+    async function initDashboard() {
+      await loadAuthState();
+      if (!currentUser || currentUser.role !== 'teacher') {
+        goTo('login.html');
+        return;
+      }
+      await loadDashData();
+    }
+
+    async function loadDashData() {
       try {
-        const list = await apiFetch(`/api/faculty?${params}`);
-        document.getElementById('result-count').textContent = `${list.length} Faculty Member${list.length !== 1 ? 's' : ''}`;
+        const [events, news, faculty] = await Promise.all([
+          apiFetch('/api/events'),
+          apiFetch('/api/news'),
+          apiFetch('/api/faculty')
+        ]);
 
-        const container = document.getElementById('faculty-list');
-        const empty = document.getElementById('empty-state');
+        const myEvents = events.filter(e => e.organizer_id === currentUser.id);
+        const myNews = news.filter(n => n.author_id === currentUser.id);
+        myProfile = faculty.find(f => f.user_id === currentUser.id) || null;
 
-        if (list.length === 0) {
-          container.innerHTML = '';
-          empty.classList.remove('hidden');
-        } else {
-          empty.classList.add('hidden');
-          container.innerHTML = list.map(f => `
-        <a href="faculty-profile.html?id=${f.id}" class="faculty-card">
-          <img class="faculty-avatar" src="${f.photo_url}" alt="${f.name}" onerror="imgFallback(this,'faculty')">
-          <div style="min-width: 0;">
-            <h2 class="title-lg" style="margin-bottom:0.25rem;color:var(--primary)">${f.name}</h2>
-            <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;margin-bottom:0.75rem">
-              <span class="font-weight-bold" style="font-size:0.9rem">${f.title}</span>
-              <span style="color:var(--outline-variant)">|</span>
-              <span class="text-muted" style="font-size:0.9rem">${f.department}</span>
-            </div>
-            <p class="body-md text-muted" style="margin-bottom:1rem;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${f.bio
-              ? f.bio
-              : '<span style="background:var(--surface-container);color:var(--on-surface-variant);font-size:.8rem;padding:.2rem .65rem;border-radius:999px;display:inline-flex;align-items:center;gap:.3rem"><span class=\'material-symbols-rounded\' style=\'font-size:.9rem\'>schedule</span>Pending admin approval</span>'
-            }</p>
-            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
-              ${(f.research_areas || '').split(',').filter(x => x).map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}
-            </div>
-          </div>
-        </a>
-      `).join('');
+        // Hero
+        document.getElementById('hero-name').textContent = myProfile ? myProfile.name : currentUser.name;
+        document.getElementById('hero-meta').textContent = myProfile ? `${myProfile.department} · ${myProfile.title}` : 'Faculty Member';
+        document.getElementById('avatar').src = myProfile?.photo_url || '';
+
+        // Stats
+        document.getElementById('stat-ev').textContent = myEvents.length;
+        document.getElementById('stat-ns').textContent = myNews.length;
+        document.getElementById('stat-pub').textContent = myProfile ? (myProfile.publications || []).length : 0;
+
+        // Profile view
+        renderProfileView();
+
+        // Fill edit profile fields only if not pending
+        if (myProfile && currentUser.status !== 'pending') {
+          document.getElementById('p-name').value = myProfile.name || '';
+          document.getElementById('p-research').value = myProfile.research_areas || '';
+          document.getElementById('p-bio').value = myProfile.bio || '';
+          document.getElementById('p-photo').value = myProfile.photo_url || '';
+          updateCharCount(document.getElementById('p-bio'), 'p-bio-count', 600);
         }
+
+        // Render tables
+        renderMyEvents(myEvents);
+        renderMyNews(myNews);
       } catch (e) { console.error(e); }
     }
 
-    loadFaculty();
+    // Helper: make photo_url absolute (fixes /uploads/ paths when running on Netlify)
+    function resolvePhotoUrl(url) {
+      if (!url) return '';
+      if (url.startsWith('http')) return url;
+      // relative path — prefix with API server base
+      return `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
+    function renderProfileView() {
+      const profilePanel = document.getElementById('panel-profile');
+      const isPending = currentUser && currentUser.status === 'pending';
+
+      // If pending, replace entire profile panel with a waiting notice
+      if (isPending) {
+        profilePanel.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;text-align:center">
+            <span class="material-symbols-rounded" style="font-size:4rem;color:var(--primary);margin-bottom:1.25rem">hourglass_top</span>
+            <h2 class="display-sm font-display" style="margin-bottom:0.75rem">Account Awaiting Approval</h2>
+            <p class="body-lg text-muted" style="max-width:460px;margin-bottom:2rem">
+              Your faculty profile is currently under review. Once an administrator approves your account,
+              your full profile and dashboard features will become available.
+            </p>
+            <div style="background:var(--primary-fixed);border-radius:var(--radius-lg);padding:1.5rem 2rem;max-width:360px;width:100%">
+              <p style="color:var(--primary);font-weight:600;margin-bottom:.25rem">What happens next?</p>
+              <p class="text-sm text-muted">The admin will review your registration and activate your account. Check back later or contact your administrator.</p>
+            </div>
+          </div>`;
+        return;
+      }
+
+      const el = document.getElementById('profile-view');
+      if (!el) return; // panel was replaced above
+      if (!myProfile) {
+        el.innerHTML = '<p class="text-muted text-sm">No faculty profile found. Contact admin to create your profile, or fill in the Edit Profile form.</p>';
+        return;
+      }
+      const areas = (myProfile.research_areas || '').split(',').filter(x => x);
+      const photoSrc = resolvePhotoUrl(myProfile.photo_url);
+      el.innerHTML = `
+    <div class="flex items-center gap-3 mb-3">
+      <img src="${photoSrc}" style="width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--surface-container)" onerror="imgFallback(this,'faculty')">
+      <div style="min-width:0">
+        <h4 class="title-md" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.name}</h4>
+        <p class="text-muted text-sm" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${myProfile.title} — ${myProfile.department}</p>
+      </div>
+    </div>
+    <p class="body-md text-muted mb-4 profile-bio-clamp">${myProfile.bio || 'No biography yet.'}</p>
+    <div class="flex flex-wrap gap-2 mb-4">${areas.map(r => `<span class="chip chip-secondary">${r.trim()}</span>`).join('')}</div>
+    <a href="faculty-profile.html?id=${myProfile.id}" class="btn btn-outline btn-sm btn-pill" target="_blank">
+      <span class="material-symbols-rounded" style="font-size:1rem">open_in_new</span> View Public Profile
+    </a>`;
+    }
+
+    function renderMyEvents(events) {
+      const tbody = document.getElementById('my-events-tbody');
+      if (!events.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">You have no events yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-event')">Add your first event →</button></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = events.map(e => `
+    <tr>
+      <td>
+        <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
+      </td>
+      <td><span class="chip ${getCategoryColor(e.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${e.category}</span></td>
+      <td class="text-muted text-sm">${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</td>
+      <td class="text-muted text-sm">${e.location || '–'}</td>
+      <td style="text-align:right">
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}",${JSON.stringify(e.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
+          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManageStudents(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Manage Students">
+          <span class="material-symbols-rounded" style="font-size:1rem">group</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openEventEdit(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Edit">
+          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="delEvent(${e.id})" title="Delete">
+          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
+        </button>
+      </td>
+    </tr>`).join('');
+    }
+
+    function renderMyNews(news) {
+      const tbody = document.getElementById('my-news-tbody');
+      if (!news.length) {
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No articles yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-news')">Write your first article →</button></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = news.map(n => `
+    <tr>
+      <td>
+        <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
+      </td>
+      <td><span class="chip ${getCategoryColor(n.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${n.category}</span></td>
+      <td class="text-muted text-sm">${formatDateShort(n.published_at)}</td>
+      <td style="text-align:right">
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}",${JSON.stringify(n.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
+          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openNewsEdit(${JSON.stringify(n).replace(/'/g, "&#39;")})' title="Edit">
+          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="delNews(${n.id})" title="Delete">
+          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
+        </button>
+      </td>
+    </tr>`).join('');
+    }
+
+    // ─── Profile Save ───
+    async function saveProfile() {
+      if (!myProfile) return showToast('No profile found. Contact admin.', 'error');
+      const body = { name: document.getElementById('p-name').value, research_areas: document.getElementById('p-research').value, bio: document.getElementById('p-bio').value, photo_url: document.getElementById('p-photo').value };
+      try {
+        await apiFetch(`/api/faculty/${myProfile.id}`, { method: 'PUT', body: JSON.stringify(body) });
+        showToast('Profile saved!', 'success');
+        loadDashData();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Student Rows ───
+    let studentRowCount = 0;
+    function addStudentRow(preset = {}) {
+      const container = document.getElementById('student-rows');
+      const idx = studentRowCount++;
+      const row = document.createElement('div');
+      row.className = 'student-row';
+      row.id = `sr-${idx}`;
+      row.innerHTML = `
+    <input type="text" class="form-input" placeholder="Student Name" value="${preset.name || ''}">
+    <input type="text" class="form-input" placeholder="Branch / Dept." value="${preset.branch || ''}">
+    <button type="button" class="del-student-btn" onclick="removeStudentRow('sr-${idx}')" title="Remove">✕</button>`;
+      container.appendChild(row);
+    }
+    function removeStudentRow(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+    function getStudentRows() {
+      return Array.from(document.querySelectorAll('#student-rows .student-row')).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), branch: inputs[1].value.trim() };
+      }).filter(s => s.name || s.branch);
+    }
+
+    // ─── Photo mode toggles ───
+    let evPhotoMode = 'url', nsPhotoMode = 'url';
+    function setEvPhotoMode(mode) {
+      evPhotoMode = mode;
+      document.getElementById('ev-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ev-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ev-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ev-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+    function setNsPhotoMode(mode) {
+      nsPhotoMode = mode;
+      document.getElementById('ns-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ns-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ns-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ns-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+    function previewEvFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ev-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+    function previewNsFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ns-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    // ─── Upload helper shared ───
+    async function uploadImageFile(file) {
+      const fd = new FormData(); fd.append('file', file);
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      const url = data.url;
+      return url.startsWith('http') ? url : `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
+    function convertDriveUrl(url) {
+      if (!url || !url.includes('drive.google.com')) return url;
+      const m = url.match(/\/d\/([\w-]+)/);
+      return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : url;
+    }
+
+    async function getEventImgUrls() {
+      let mainUrl = '';
+      if (evPhotoMode === 'file') {
+        const file = document.getElementById('ev-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ev-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ev-img-rows .ev-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+    async function getNewsImgUrls() {
+      let mainUrl = '';
+      if (nsPhotoMode === 'file') {
+        const file = document.getElementById('ns-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ns-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ns-img-rows .ns-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+
+    function addImgRow(containerId) {
+      const c = document.getElementById(containerId);
+      const cls = containerId === 'ev-img-rows' ? 'ev-img-input' : 'ns-img-input';
+      const div = document.createElement('div');
+      div.className = 'flex gap-2 mb-2';
+      div.innerHTML = `<input type="url" class="form-input ${cls}" placeholder="https://... (additional photo URL)" style="flex:1"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'${containerId}')" title="Remove">✕</button>`;
+      c.appendChild(div);
+    }
+    function removeImgRow(btn, containerId) {
+      const rows = document.querySelectorAll(`#${containerId} .flex`);
+      if (rows.length <= 1) { btn.previousElementSibling.value = ''; return; }
+      btn.parentElement.remove();
+    }
+    function previewFirstEventImg() {
+      const val = document.getElementById('ev-main-url')?.value;
+      const pre = document.getElementById('ev-img-pre');
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      else pre.classList.remove('visible');
+    }
+    function previewFirstNewsImg() {
+      const val = document.getElementById('ns-main-url')?.value;
+      const pre = document.getElementById('ns-img-pre');
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      else pre.classList.remove('visible');
+    }
+
+    // ─── Add Event ───
+    async function submitEvent() {
+      const title = document.getElementById('ev-title').value.trim();
+      const date = document.getElementById('ev-date').value;
+      const loc = document.getElementById('ev-loc').value.trim();
+      if (!title || !date || !loc) {
+        document.getElementById('ev-error').textContent = 'Title, date, and location are required.';
+        document.getElementById('ev-error').classList.remove('hidden');
+        return;
+      }
+      const btn = document.getElementById('ev-submit');
+      btn.textContent = 'Publishing…'; btn.disabled = true;
+      try {
+        const registered_students = getStudentRows();
+        const imgs = await getEventImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ev-cat').value, event_date: date, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: loc, description: document.getElementById('ev-desc').value, image_url, extra_images, registered_students };
+        await apiFetch('/api/events', { method: 'POST', body: JSON.stringify(body) });
+        showToast('Event published! 🎉', 'success');
+        resetEventForm();
+        showTab('my-events');
+        loadDashData();
+      } catch (e) {
+        document.getElementById('ev-error').textContent = e.message;
+        document.getElementById('ev-error').classList.remove('hidden');
+      }
+      btn.innerHTML = '<span class="material-symbols-rounded">publish</span> Publish Event';
+      btn.disabled = false;
+    }
+
+    function resetEventForm() {
+      ['ev-title', 'ev-date', 'ev-start', 'ev-end', 'ev-loc', 'ev-desc'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('ev-main-url').value = '';
+      document.getElementById('ev-main-file').value = '';
+      document.getElementById('ev-file-preview').style.display = 'none';
+      document.getElementById('ev-img-rows').innerHTML = '';
+      document.getElementById('ev-img-pre').classList.remove('visible');
+      document.getElementById('ev-error').classList.add('hidden');
+      document.getElementById('student-rows').innerHTML = '';
+      studentRowCount = 0;
+      setEvPhotoMode('url');
+    }
+
+    // ─── Add News ───
+    async function submitNews() {
+      const title = document.getElementById('ns-title').value.trim();
+      const excerpt = document.getElementById('ns-excerpt').value.trim();
+      const content = document.getElementById('ns-content').value.trim();
+      if (!title || !content) {
+        document.getElementById('ns-error').textContent = 'Headline and content are required.';
+        document.getElementById('ns-error').classList.remove('hidden');
+        return;
+      }
+      const btn = document.getElementById('ns-submit');
+      btn.textContent = 'Publishing…'; btn.disabled = true;
+      try {
+        const imgs = await getNewsImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ns-cat').value, excerpt, content, image_url, extra_images };
+        await apiFetch('/api/news', { method: 'POST', body: JSON.stringify(body) });
+        showToast('Article published! 📰', 'success');
+        resetNewsForm();
+        showTab('my-news');
+        loadDashData();
+      } catch (e) {
+        document.getElementById('ns-error').textContent = e.message;
+        document.getElementById('ns-error').classList.remove('hidden');
+      }
+      btn.innerHTML = '<span class="material-symbols-rounded">publish</span> Publish Article';
+      btn.disabled = false;
+    }
+
+    function resetNewsForm() {
+      ['ns-title', 'ns-excerpt', 'ns-content'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('ns-main-url').value = '';
+      document.getElementById('ns-main-file').value = '';
+      document.getElementById('ns-file-preview').style.display = 'none';
+      document.getElementById('ns-img-rows').innerHTML = '';
+      document.getElementById('ns-img-pre').classList.remove('visible');
+      document.getElementById('ns-error').classList.add('hidden');
+      setNsPhotoMode('url');
+    }
+
+    // ─── Manage Photos (post-publish) ───
+    let mpType = null;  // 'event' or 'news'
+    let mpItemId = null;
+    let mpRowCount = 0;
+    let mpAddMode = 'url';  // 'url' | 'file'
+
+    function openManagePhotos(type, id, mainUrl, extraImagesRaw) {
+      mpType = type;
+      mpItemId = id;
+      mpRowCount = 0;
+      mpAddMode = 'url';
+
+      let allPhotos = [];
+      if (mainUrl) allPhotos.push(mainUrl);
+      try {
+        const extras = typeof extraImagesRaw === 'string' ? JSON.parse(extraImagesRaw) : extraImagesRaw;
+        if (Array.isArray(extras)) allPhotos = allPhotos.concat(extras.filter(Boolean));
+      } catch { }
+
+      const container = document.getElementById('mp-photo-rows');
+      container.innerHTML = '';
+      allPhotos.forEach(url => addMpRow(url));
+
+      // Reset the add-new section
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      setMpAddMode('url');
+
+      refreshMpPreview();
+      document.getElementById('mp-item-title').textContent =
+        type === 'event' ? `Event #${id}` : `Article #${id}`;
+      document.getElementById('modal-mp').classList.add('open');
+    }
+
+    function setMpAddMode(mode) {
+      mpAddMode = mode;
+      document.getElementById('mp-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('mp-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('mp-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('mp-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+
+    async function addNewMpPhoto() {
+      let url = '';
+      if (mpAddMode === 'file') {
+        const file = document.getElementById('mp-new-file').files[0];
+        if (!file) { showToast('Please choose a file first', 'error'); return; }
+        try { url = await uploadImageFile(file); } catch(e) { showToast(e.message, 'error'); return; }
+      } else {
+        url = convertDriveUrl(document.getElementById('mp-new-url').value.trim());
+        if (!url) { showToast('Please enter a URL or Drive link', 'error'); return; }
+      }
+      addMpRow(url);
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      refreshMpPreview();
+      showToast('Photo added — click Save to apply', 'success');
+    }
+
+    function addMpRow(url = '') {
+      const container = document.getElementById('mp-photo-rows');
+      const idx = mpRowCount++;
+      const div = document.createElement('div');
+      div.className = 'flex gap-2 mb-2'; div.id = `mp-row-${idx}`;
+      div.innerHTML = `<input type="url" class="form-input mp-url-input" placeholder="https://..." style="flex:1" value="${url}" oninput="refreshMpPreview()"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mp-row-${idx}').remove();refreshMpPreview()" title="Remove">✕</button>`;
+      container.appendChild(div);
+    }
+
+    function refreshMpPreview() {
+      const urls = Array.from(document.querySelectorAll('.mp-url-input')).map(i => i.value.trim()).filter(Boolean);
+      const strip = document.getElementById('mp-preview-strip');
+      strip.innerHTML = urls.map((u, i) => `
+        <div style="position:relative">
+          <img src="${u}" style="width:88px;height:62px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid ${i === 0 ? 'var(--primary)' : 'var(--surface-container)'}" onerror="this.style.display='none'">
+          ${i === 0 ? '<span style="position:absolute;bottom:2px;left:4px;font-size:0.55rem;color:#fff;background:var(--primary);padding:0 3px;border-radius:2px">Main</span>' : ''}
+        </div>`).join('');
+    }
+
+    async function saveManagePhotos() {
+      const urls = Array.from(document.querySelectorAll('.mp-url-input')).map(i => i.value.trim()).filter(Boolean);
+      const image_url = urls[0] || '';
+      const extra_images = urls.slice(1);
+      const endpoint = mpType === 'event' ? `/api/events/${mpItemId}` : `/api/news/${mpItemId}`;
+      try {
+        await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify({ image_url, extra_images }) });
+        showToast('Photos updated! 📷', 'success');
+        closeModal('modal-mp');
+        loadDashData();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Manage Students (post-publish) ───
+    let manageStudentsEventId = null;
+    let manageStudentRows = [];
+    function openManageStudents(e) {
+      manageStudentsEventId = e.id;
+      try { manageStudentRows = JSON.parse(e.registered_students || '[]'); } catch { manageStudentRows = []; }
+      document.getElementById('ms-event-title').textContent = e.title;
+      const container = document.getElementById('ms-student-rows');
+      container.innerHTML = '';
+      manageStudentRows.forEach((s, i) => addManageStudentRow(s, i));
+      document.getElementById('modal-ms').classList.add('open');
+    }
+    let msRowCount = 0;
+    function addManageStudentRow(preset = {}) {
+      const container = document.getElementById('ms-student-rows');
+      const idx = msRowCount++;
+      const row = document.createElement('div');
+      row.className = 'student-row'; row.id = `msr-${idx}`;
+      row.innerHTML = `<input type="text" class="form-input" placeholder="Student Name" value="${preset.name || ''}"><input type="text" class="form-input" placeholder="Branch / Dept." value="${preset.branch || ''}"><button type="button" class="del-student-btn" onclick="document.getElementById('msr-${idx}').remove()" title="Remove">✕</button>`;
+      container.appendChild(row);
+    }
+    async function saveManageStudents() {
+      const students = Array.from(document.querySelectorAll('#ms-student-rows .student-row')).map(row => {
+        const inputs = row.querySelectorAll('input');
+        return { name: inputs[0].value.trim(), branch: inputs[1].value.trim() };
+      }).filter(s => s.name || s.branch);
+      try {
+        await apiFetch(`/api/events/${manageStudentsEventId}`, { method: 'PUT', body: JSON.stringify({ registered_students: students }) });
+        showToast('Students updated!', 'success');
+        closeModal('modal-ms');
+        loadDashData();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Edit Event ───
+    function openEventEdit(e) {
+      document.getElementById('mev-id').value = e.id;
+      document.getElementById('mev-title').value = e.title;
+      document.getElementById('mev-date').value = e.event_date;
+      document.getElementById('mev-loc').value = e.location || '';
+      document.getElementById('mev-start').value = e.time_start || '';
+      document.getElementById('mev-end').value = e.time_end || '';
+      document.getElementById('mev-desc').value = e.description || '';
+      document.getElementById('mev-img').value = e.image_url || '';
+      if (e.image_url) { document.getElementById('mev-img-pre').src = e.image_url; document.getElementById('mev-img-pre').classList.add('visible'); }
+      else document.getElementById('mev-img-pre').classList.remove('visible');
+      document.getElementById('modal-ev').classList.add('open');
+    }
+    async function saveEventEdit() {
+      const id = document.getElementById('mev-id').value;
+      const body = { title: document.getElementById('mev-title').value, event_date: document.getElementById('mev-date').value, location: document.getElementById('mev-loc').value, time_start: document.getElementById('mev-start').value, time_end: document.getElementById('mev-end').value, description: document.getElementById('mev-desc').value, image_url: document.getElementById('mev-img').value };
+      try {
+        await apiFetch(`/api/events/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        showToast('Event updated!', 'success');
+        closeModal('modal-ev');
+        loadDashData();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+    async function delEvent(id) {
+      if (!confirm('Delete this event? This cannot be undone.')) return;
+      try { await apiFetch(`/api/events/${id}`, { method: 'DELETE' }); showToast('Event deleted', 'success'); loadDashData(); }
+      catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Edit News ───
+    function openNewsEdit(n) {
+      document.getElementById('mns-id').value = n.id;
+      document.getElementById('mns-title').value = n.title;
+      document.getElementById('mns-cat').value = n.category;
+      document.getElementById('mns-excerpt').value = n.excerpt || '';
+      document.getElementById('mns-content').value = n.content || '';
+      document.getElementById('mns-img').value = n.image_url || '';
+      if (n.image_url) { document.getElementById('mns-img-pre').src = n.image_url; document.getElementById('mns-img-pre').classList.add('visible'); }
+      else document.getElementById('mns-img-pre').classList.remove('visible');
+      document.getElementById('modal-ns').classList.add('open');
+    }
+    async function saveNewsEdit() {
+      const id = document.getElementById('mns-id').value;
+      const body = { title: document.getElementById('mns-title').value, category: document.getElementById('mns-cat').value, excerpt: document.getElementById('mns-excerpt').value, content: document.getElementById('mns-content').value, image_url: document.getElementById('mns-img').value };
+      try {
+        await apiFetch(`/api/news/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+        showToast('Article updated!', 'success');
+        closeModal('modal-ns');
+        loadDashData();
+      } catch (e) { showToast(e.message, 'error'); }
+    }
+    async function delNews(id) {
+      if (!confirm('Delete this article? This cannot be undone.')) return;
+      try { await apiFetch(`/api/news/${id}`, { method: 'DELETE' }); showToast('Article deleted', 'success'); loadDashData(); }
+      catch (e) { showToast(e.message, 'error'); }
+    }
+
+    // ─── Helpers ───
+    function showTab(name) {
+      document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+      document.querySelector(`[onclick="showTab('${name}')"]`).classList.add('active');
+      document.getElementById(`panel-${name}`).classList.add('active');
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.modal-backdrop').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+    function previewImg(input, previewId) {
+      const prev = document.getElementById(previewId);
+      if (input.value) { prev.src = input.value; prev.classList.add('visible'); prev.onerror = () => prev.classList.remove('visible'); }
+      else prev.classList.remove('visible');
+    }
+    function updateCharCount(textarea, countId, max) {
+      const el = document.getElementById(countId);
+      if (el) el.textContent = textarea.value.length;
+    }
+
+    initDashboard();
   </script>
 </body>
 
