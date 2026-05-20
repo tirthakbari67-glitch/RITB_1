@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -303,9 +303,9 @@
       <a href="index.html" class="nav-logo">RITB</a>
       <div class="nav-links">
         <a href="index.html">Home</a>
-        <a href="news-archive.html">News</a>
-        <a href="events-calendar.html">Events</a>
-        <a href="faculty-directory.html">Faculty</a>
+        <a href="news-archive.html" class="nav-link-protected">News</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
+        <a href="faculty-directory.html" class="nav-link-protected">Faculty</a>
       </div>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
@@ -382,10 +382,25 @@
             <div class="char-count"><span id="p-bio-count">0</span>/600</div>
           </div>
           <div class="form-group">
-            <label class="form-label">Profile Photo URL</label>
-            <input id="p-photo" type="url" class="form-input" placeholder="https://..."
-              oninput="previewImg(this,'p-photo-pre')">
-            <img id="p-photo-pre" class="img-preview" alt="Photo preview">
+            <label class="form-label">Profile Photo</label>
+            <!-- Toggle -->
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="pp-btn-url" onclick="setPpPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="pp-btn-file" onclick="setPpPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <!-- URL mode -->
+            <div id="pp-url-wrap">
+              <input id="p-photo" type="url" class="form-input"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewImg(this,'p-photo-pre')">
+            </div>
+            <!-- File mode -->
+            <div id="pp-file-wrap" style="display:none">
+              <input id="pp-file-input" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewPpFile(this)">
+            </div>
+            <img id="p-photo-pre" class="img-preview" alt="Photo preview" style="margin-top:.5rem">
           </div>
           <button class="btn btn-primary btn-pill" onclick="saveProfile()">
             <span class="material-symbols-rounded" style="font-size:1rem">save</span> Save Profile
@@ -466,20 +481,38 @@
 
         <div class="form-group">
           <label class="form-label">Event Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the main
-            banner. Recommended size: 1600×900px.</p>
-          <div id="ev-img-rows">
-            <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ev-img-input"
-                placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1"
-                oninput="previewFirstEventImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')"
-                title="Remove">✕</button>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the main banner. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
+
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Main / Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ev-btn-url" onclick="setEvPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ev-btn-file" onclick="setEvPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ev-photo-url-wrap">
+              <input type="url" class="form-input ev-img-input" id="ev-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstEventImg()"
+                style="width:100%">
+            </div>
+            <div id="ev-photo-file-wrap" style="display:none">
+              <input id="ev-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewEvFile(this)">
+              <img id="ev-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
             </div>
           </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ev-img-rows"></div>
           <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ev-img-rows')"
             style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
           </button>
           <img id="ev-img-pre" class="img-preview" alt="Event main photo preview" style="margin-top:0.75rem">
         </div>
@@ -552,20 +585,38 @@
 
         <div class="form-group">
           <label class="form-label">Article Photos</label>
-          <p class="form-hint" style="margin-bottom:0.75rem">Add one or more photo URLs. The first one is the cover
-            image.</p>
-          <div id="ns-img-rows">
-            <div class="flex gap-2 mb-2">
-              <input type="url" class="form-input ns-img-input"
-                placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1"
-                oninput="previewFirstNewsImg()">
-              <button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')"
-                title="Remove">✕</button>
+          <p class="form-hint" style="margin-bottom:0.75rem">First photo is the cover image. Supported: Google Drive
+            links, direct URLs, or upload from your device.</p>
+
+          <!-- Main photo — Drive link OR file upload -->
+          <div
+            style="margin-bottom:0.75rem;padding:1rem;background:var(--surface-container);border-radius:var(--radius-md)">
+            <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Cover Photo</p>
+            <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+              <button type="button" class="photo-toggle-btn active" id="ns-btn-url" onclick="setNsPhotoMode('url')">🔗
+                Drive / URL</button>
+              <button type="button" class="photo-toggle-btn" id="ns-btn-file" onclick="setNsPhotoMode('file')">📁 Upload
+                from Device</button>
+            </div>
+            <div id="ns-photo-url-wrap">
+              <input type="url" class="form-input ns-img-input" id="ns-main-url"
+                placeholder="https://drive.google.com/... or direct image URL" oninput="previewFirstNewsImg()"
+                style="width:100%">
+            </div>
+            <div id="ns-photo-file-wrap" style="display:none">
+              <input id="ns-main-file" type="file" class="form-input" accept="image/*" style="padding:.5rem"
+                onchange="previewNsFile(this)">
+              <img id="ns-file-preview" src="" alt=""
+                style="display:none;width:80px;height:80px;border-radius:var(--radius-md);object-fit:cover;margin-top:.5rem;border:2px solid var(--outline-variant)">
             </div>
           </div>
+
+          <!-- Additional photos (URL only) -->
+          <div id="ns-img-rows"></div>
           <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addImgRow('ns-img-rows')"
             style="margin-top:0.5rem">
             <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Another Photo
+            URL
           </button>
           <img id="ns-img-pre" class="img-preview" alt="Article photo preview" style="margin-top:0.75rem">
         </div>
@@ -589,24 +640,7 @@
             <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Event
           </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Category</th>
-                <th>Date & Time</th>
-                <th>Location</th>
-                <th style="text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="my-events-tbody">
-              <tr class="empty-row">
-                <td colspan="5">Loading your events…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div id="my-events-list" style="display:flex;flex-direction:column;gap:0"></div>
       </div>
     </div>
 
@@ -619,23 +653,7 @@
             <span class="material-symbols-rounded" style="font-size:1rem">add</span> New Article
           </button>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Article</th>
-                <th>Category</th>
-                <th>Published</th>
-                <th style="text-align:right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="my-news-tbody">
-              <tr class="empty-row">
-                <td colspan="4">Loading your articles…</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div id="my-news-list" style="display:flex;flex-direction:column;gap:0"></div>
       </div>
     </div>
 
@@ -732,12 +750,36 @@
       <h3 class="title-lg mb-1">📷 Manage Photos</h3>
       <p class="text-muted text-sm mb-4" id="mp-item-title"></p>
 
-      <div id="mp-photo-rows" style="margin-bottom:1rem"></div>
-      <button type="button" class="btn btn-secondary btn-sm btn-pill" onclick="addMpRow()" style="margin-bottom:1.5rem">
-        <span class="material-symbols-rounded" style="font-size:1rem">add_photo_alternate</span> Add Photo
-      </button>
+      <!-- Add new photo section -->
+      <div style="padding:1rem;background:var(--surface-container);border-radius:var(--radius-md);margin-bottom:1rem">
+        <p class="label-sm text-muted" style="margin-bottom:.5rem">➕ Add a New Photo</p>
+        <div style="display:flex;gap:.5rem;margin-bottom:.6rem">
+          <button type="button" class="photo-toggle-btn active" id="mp-btn-url" onclick="setMpAddMode('url')">🔗 Drive /
+            URL</button>
+          <button type="button" class="photo-toggle-btn" id="mp-btn-file" onclick="setMpAddMode('file')">📁 Upload from
+            Device</button>
+        </div>
+        <div id="mp-url-wrap" style="display:flex;gap:.5rem">
+          <input type="url" class="form-input" id="mp-new-url"
+            placeholder="https://drive.google.com/... or direct image URL" style="flex:1">
+          <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Add</button>
+        </div>
+        <div id="mp-file-wrap" style="display:none;flex-direction:column;gap:.5rem">
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <input id="mp-new-file" type="file" class="form-input" accept="image/*" style="flex:1;padding:.5rem"
+              onchange="(()=>{const f=this.files[0];if(f){const r=new FileReader();r.onload=e=>{const img=document.getElementById('mp-new-file-preview');img.src=e.target.result;img.style.display='block';};r.readAsDataURL(f);}})()">
+            <button type="button" class="btn btn-primary btn-sm" onclick="addNewMpPhoto()">Upload & Add</button>
+          </div>
+          <img id="mp-new-file-preview" src="" alt=""
+            style="display:none;width:80px;height:56px;border-radius:var(--radius-sm);object-fit:cover;border:2px solid var(--outline-variant)">
+        </div>
+      </div>
 
-      <!-- Live preview of all photos -->
+      <!-- Current photos list -->
+      <p class="label-sm text-muted" style="margin-bottom:.5rem">📸 Current Photos (first = main banner)</p>
+      <div id="mp-photo-rows" style="margin-bottom:1rem;max-height:200px;overflow-y:auto"></div>
+
+      <!-- Live preview strip -->
       <div id="mp-preview-strip" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.5rem"></div>
 
       <div class="flex gap-3">
@@ -794,6 +836,29 @@
   <script src="app.js"></script>
   <script>
     let myProfile = null;
+    let _myEvents = [];   // cache for safe ID-based onclick lookups
+    let _myNews   = [];   // cache for safe ID-based onclick lookups
+
+    // Lookup helpers — avoids JSON-in-onclick escaping bugs
+    function _evt(id) { return _myEvents.find(e => e.id === id) || {}; }
+    function _nws(id) { return _myNews.find(n => n.id === id) || {}; }
+
+    function _openEvtEdit(id)   { openEventEdit(_evt(id)); }
+    function _openEvtStudents(id) { openManageStudents(_evt(id)); }
+    function _openEvtPhotos(id) {
+      const e = _evt(id);
+      let extras = e.extra_images;
+      if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch { extras = []; } }
+      openManagePhotos('event', id, e.image_url || '', extras || []);
+    }
+    function _openNwsEdit(id)   { openNewsEdit(_nws(id)); }
+    function _openNwsPhotos(id) {
+      const n = _nws(id);
+      let extras = n.extra_images;
+      if (typeof extras === 'string') { try { extras = JSON.parse(extras); } catch { extras = []; } }
+      openManagePhotos('news', id, n.image_url || '', extras || []);
+    }
+
 
     // ─── Init ───
     async function initDashboard() {
@@ -807,15 +872,13 @@
 
     async function loadDashData() {
       try {
-        const [events, news, faculty] = await Promise.all([
-          apiFetch('/api/events'),
-          apiFetch('/api/news'),
-          apiFetch('/api/faculty')
+        const [myEvents, myNews, myFaculty] = await Promise.all([
+          apiFetch('/api/events/my').catch(() => []),
+          apiFetch('/api/news/my').catch(() => []),
+          apiFetch('/api/faculty/me').catch(() => null)
         ]);
 
-        const myEvents = events.filter(e => e.organizer_id === currentUser.id);
-        const myNews = news.filter(n => n.author_id === currentUser.id);
-        myProfile = faculty.find(f => f.user_id === currentUser.id) || null;
+        myProfile = myFaculty || null;
 
         // Hero
         document.getElementById('hero-name').textContent = myProfile ? myProfile.name : currentUser.name;
@@ -899,70 +962,124 @@
     }
 
     function renderMyEvents(events) {
-      const tbody = document.getElementById('my-events-tbody');
+      _myEvents = events;   // cache for safe lookups
+      const container = document.getElementById('my-events-list');
       if (!events.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="5">You have no events yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-event')">Add your first event →</button></td></tr>`;
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
+          <span class="material-symbols-rounded" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4">event_note</span>
+          <p style="font-weight:600">No events yet.</p>
+          <button class="btn btn-primary btn-sm btn-pill" style="margin-top:.75rem" onclick="showTab('add-event')">Add your first event →</button>
+        </div>`;
         return;
       }
-      tbody.innerHTML = events.map(e => `
-    <tr>
-      <td>
-        <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
-      </td>
-      <td><span class="chip ${getCategoryColor(e.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${e.category}</span></td>
-      <td class="text-muted text-sm">${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</td>
-      <td class="text-muted text-sm">${e.location || '–'}</td>
-      <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("event",${e.id},"${e.image_url || ''}",${JSON.stringify(e.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
-          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManageStudents(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Manage Students">
-          <span class="material-symbols-rounded" style="font-size:1rem">group</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openEventEdit(${JSON.stringify(e).replace(/'/g, "&#39;")})' title="Edit">
-          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="delEvent(${e.id})" title="Delete">
-          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
-        </button>
-      </td>
-    </tr>`).join('');
+      container.innerHTML = events.map(e => `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <a href="event-detail.html?id=${e.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${e.title}</a>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem;align-items:center">
+              <span class="chip ${getCategoryColor(e.category)} label-sm" style="font-size:0.65rem">${e.category}</span>
+              <span class="text-muted text-sm">📅 ${formatDateShort(e.event_date)} · ${formatTime(e.time_start)}</span>
+              <span class="text-muted text-sm">📍 ${e.location || '–'}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtPhotos(${e.id})" title="Manage Photos" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtStudents(${e.id})" title="Students" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">group</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="_openEvtEdit(${e.id})" title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
+            </button>
+            <button class="btn btn-sm" onclick="delEvent(${e.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
+            </button>
+          </div>
+        </div>`).join('');
     }
 
     function renderMyNews(news) {
-      const tbody = document.getElementById('my-news-tbody');
+      _myNews = news;   // cache for safe lookups
+      const container = document.getElementById('my-news-list');
       if (!news.length) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="4">No articles yet. <button class="btn btn-sm" style="margin-left:0.5rem" onclick="showTab('add-news')">Write your first article →</button></td></tr>`;
+        container.innerHTML = `<div style="padding:2rem;text-align:center;color:var(--on-surface-variant)">
+          <span class="material-symbols-rounded" style="font-size:2.5rem;display:block;margin-bottom:.75rem;opacity:.4">edit_note</span>
+          <p style="font-weight:600">No articles yet.</p>
+          <button class="btn btn-primary btn-sm btn-pill" style="margin-top:.75rem" onclick="showTab('add-news')">Write your first article →</button>
+        </div>`;
         return;
       }
-      tbody.innerHTML = news.map(n => `
-    <tr>
-      <td>
-        <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
-      </td>
-      <td><span class="chip ${getCategoryColor(n.category)} label-sm" style="padding:0.1rem 0.4rem;font-size:0.65rem">${n.category}</span></td>
-      <td class="text-muted text-sm">${formatDateShort(n.published_at)}</td>
-      <td style="text-align:right">
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openManagePhotos("news",${n.id},"${n.image_url || ''}",${JSON.stringify(n.extra_images || '[]').replace(/'/g, "&#39;")})' title="Manage Photos">
-          <span class="material-symbols-rounded" style="font-size:1rem">photo_library</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" style="margin-right:0.3rem" onclick='openNewsEdit(${JSON.stringify(n).replace(/'/g, "&#39;")})' title="Edit">
-          <span class="material-symbols-rounded" style="font-size:1rem">edit</span>
-        </button>
-        <button class="btn btn-secondary btn-sm" onclick="delNews(${n.id})" title="Delete">
-          <span class="material-symbols-rounded" style="font-size:1rem;color:var(--error)">delete</span>
-        </button>
-      </td>
-    </tr>`).join('');
+      container.innerHTML = news.map(n => `
+        <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--surface-container);flex-wrap:wrap">
+          <div style="flex:1;min-width:0">
+            <a href="news-detail.html?id=${n.id}" class="font-weight-bold text-primary" style="text-decoration:none" target="_blank">${n.title}</a>
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem;align-items:center">
+              <span class="chip ${getCategoryColor(n.category)} label-sm" style="font-size:0.65rem">${n.category}</span>
+              <span class="text-muted text-sm">📅 ${formatDateShort(n.published_at)}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button class="btn btn-secondary btn-sm" onclick="_openNwsPhotos(${n.id})" title="Manage Photos" style="padding:.4rem .6rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">photo_library</span>
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="_openNwsEdit(${n.id})" title="Edit" style="padding:.4rem .75rem;display:flex;align-items:center;gap:.3rem">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">edit</span> Edit
+            </button>
+            <button class="btn btn-sm" onclick="delNews(${n.id})" title="Delete" style="padding:.4rem .75rem;background:var(--error-container);color:#93000a;border-radius:var(--radius-sm);display:flex;align-items:center;gap:.3rem;border:none;cursor:pointer">
+              <span class="material-symbols-rounded" style="font-size:1.1rem">delete</span> Delete
+            </button>
+          </div>
+        </div>`).join('');
+    }
+
+    // ─── Profile Photo Toggle (Drive/URL vs File Upload) ───
+    let ppPhotoMode = 'url';
+    function setPpPhotoMode(mode) {
+      ppPhotoMode = mode;
+      document.getElementById('pp-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('pp-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('pp-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('pp-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+    function previewPpFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('p-photo-pre');
+        img.src = e.target.result;
+        img.classList.add('visible');
+      };
+      reader.readAsDataURL(file);
     }
 
     // ─── Profile Save ───
     async function saveProfile() {
       if (!myProfile) return showToast('No profile found. Contact admin.', 'error');
-      const body = { name: document.getElementById('p-name').value, research_areas: document.getElementById('p-research').value, bio: document.getElementById('p-bio').value, photo_url: document.getElementById('p-photo').value };
+
+      let photoUrl = '';
+      if (ppPhotoMode === 'file') {
+        const file = document.getElementById('pp-file-input').files[0];
+        if (file) {
+          try { photoUrl = await uploadImageFile(file); }
+          catch (e) { return showToast('Photo upload failed: ' + e.message, 'error'); }
+        } else {
+          // No new file chosen → keep existing photo
+          photoUrl = myProfile.photo_url || '';
+        }
+      } else {
+        photoUrl = convertDriveUrl(document.getElementById('p-photo').value.trim());
+      }
+
+      const body = {
+        name: document.getElementById('p-name').value,
+        research_areas: document.getElementById('p-research').value,
+        bio: document.getElementById('p-bio').value,
+        photo_url: photoUrl
+      };
       try {
         await apiFetch(`/api/faculty/${myProfile.id}`, { method: 'PUT', body: JSON.stringify(body) });
-        showToast('Profile saved!', 'success');
+        showToast('Profile saved! ✅', 'success');
         loadDashData();
       } catch (e) { showToast(e.message, 'error'); }
     }
@@ -992,20 +1109,82 @@
       }).filter(s => s.name || s.branch);
     }
 
-    function getEventImgUrls() {
-      return Array.from(document.querySelectorAll('#ev-img-rows .ev-img-input'))
-        .map(i => i.value.trim()).filter(u => u);
+    // ─── Photo mode toggles ───
+    let evPhotoMode = 'url', nsPhotoMode = 'url';
+    function setEvPhotoMode(mode) {
+      evPhotoMode = mode;
+      document.getElementById('ev-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ev-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ev-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ev-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
     }
-    function getNewsImgUrls() {
-      return Array.from(document.querySelectorAll('#ns-img-rows .ns-img-input'))
-        .map(i => i.value.trim()).filter(u => u);
+    function setNsPhotoMode(mode) {
+      nsPhotoMode = mode;
+      document.getElementById('ns-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('ns-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('ns-photo-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('ns-photo-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
     }
+    function previewEvFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ev-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+    function previewNsFile(input) {
+      const file = input.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => { const img = document.getElementById('ns-file-preview'); img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    // ─── Upload helper shared ───
+    async function uploadImageFile(file) {
+      const fd = new FormData(); fd.append('file', file);
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      const url = data.url;
+      return url.startsWith('http') ? url : `${API}${url.startsWith('/') ? '' : '/'}${url}`;
+    }
+
+    function convertDriveUrl(url) {
+      if (!url || !url.includes('drive.google.com')) return url;
+      const m = url.match(/\/d\/([\w-]+)/);
+      return m ? `https://drive.google.com/uc?export=view&id=${m[1]}` : url;
+    }
+
+    async function getEventImgUrls() {
+      let mainUrl = '';
+      if (evPhotoMode === 'file') {
+        const file = document.getElementById('ev-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ev-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ev-img-rows .ev-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+    async function getNewsImgUrls() {
+      let mainUrl = '';
+      if (nsPhotoMode === 'file') {
+        const file = document.getElementById('ns-main-file').files[0];
+        if (file) mainUrl = await uploadImageFile(file);
+      } else {
+        mainUrl = convertDriveUrl(document.getElementById('ns-main-url').value.trim());
+      }
+      const extra = Array.from(document.querySelectorAll('#ns-img-rows .ns-img-input'))
+        .map(i => convertDriveUrl(i.value.trim())).filter(u => u);
+      return [mainUrl, ...extra].filter(u => u);
+    }
+
     function addImgRow(containerId) {
       const c = document.getElementById(containerId);
       const cls = containerId === 'ev-img-rows' ? 'ev-img-input' : 'ns-img-input';
       const div = document.createElement('div');
       div.className = 'flex gap-2 mb-2';
-      div.innerHTML = `<input type="url" class="form-input ${cls}" placeholder="https://..." style="flex:1"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'${containerId}')" title="Remove">✕</button>`;
+      div.innerHTML = `<input type="url" class="form-input ${cls}" placeholder="https://... (additional photo URL)" style="flex:1"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'${containerId}')" title="Remove">✕</button>`;
       c.appendChild(div);
     }
     function removeImgRow(btn, containerId) {
@@ -1014,15 +1193,15 @@
       btn.parentElement.remove();
     }
     function previewFirstEventImg() {
-      const first = document.querySelector('#ev-img-rows .ev-img-input');
+      const val = document.getElementById('ev-main-url')?.value;
       const pre = document.getElementById('ev-img-pre');
-      if (first && first.value) { pre.src = first.value; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
       else pre.classList.remove('visible');
     }
     function previewFirstNewsImg() {
-      const first = document.querySelector('#ns-img-rows .ns-img-input');
+      const val = document.getElementById('ns-main-url')?.value;
       const pre = document.getElementById('ns-img-pre');
-      if (first && first.value) { pre.src = first.value; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
+      if (val) { pre.src = val; pre.classList.add('visible'); pre.onerror = () => pre.classList.remove('visible'); }
       else pre.classList.remove('visible');
     }
 
@@ -1038,12 +1217,12 @@
       }
       const btn = document.getElementById('ev-submit');
       btn.textContent = 'Publishing…'; btn.disabled = true;
-      const registered_students = getStudentRows();
-      const imgs = getEventImgUrls();
-      const image_url = imgs[0] || '';
-      const extra_images = imgs.slice(1);
-      const body = { title, category: document.getElementById('ev-cat').value, event_date: date, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: loc, description: document.getElementById('ev-desc').value, image_url, extra_images, registered_students };
       try {
+        const registered_students = getStudentRows();
+        const imgs = await getEventImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ev-cat').value, event_date: date, time_start: document.getElementById('ev-start').value, time_end: document.getElementById('ev-end').value, location: loc, description: document.getElementById('ev-desc').value, image_url, extra_images, registered_students };
         await apiFetch('/api/events', { method: 'POST', body: JSON.stringify(body) });
         showToast('Event published! 🎉', 'success');
         resetEventForm();
@@ -1059,11 +1238,15 @@
 
     function resetEventForm() {
       ['ev-title', 'ev-date', 'ev-start', 'ev-end', 'ev-loc', 'ev-desc'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('ev-img-rows').innerHTML = `<div class="flex gap-2 mb-2"><input type="url" class="form-input ev-img-input" placeholder="https://images.unsplash.com/photo-... (Main Photo)" style="flex:1" oninput="previewFirstEventImg()"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ev-img-rows')" title="Remove">✕</button></div>`;
+      document.getElementById('ev-main-url').value = '';
+      document.getElementById('ev-main-file').value = '';
+      document.getElementById('ev-file-preview').style.display = 'none';
+      document.getElementById('ev-img-rows').innerHTML = '';
       document.getElementById('ev-img-pre').classList.remove('visible');
       document.getElementById('ev-error').classList.add('hidden');
       document.getElementById('student-rows').innerHTML = '';
       studentRowCount = 0;
+      setEvPhotoMode('url');
     }
 
     // ─── Add News ───
@@ -1078,11 +1261,11 @@
       }
       const btn = document.getElementById('ns-submit');
       btn.textContent = 'Publishing…'; btn.disabled = true;
-      const imgs = getNewsImgUrls();
-      const image_url = imgs[0] || '';
-      const extra_images = imgs.slice(1);
-      const body = { title, category: document.getElementById('ns-cat').value, excerpt, content, image_url, extra_images };
       try {
+        const imgs = await getNewsImgUrls();
+        const image_url = imgs[0] || '';
+        const extra_images = imgs.slice(1);
+        const body = { title, category: document.getElementById('ns-cat').value, excerpt, content, image_url, extra_images };
         await apiFetch('/api/news', { method: 'POST', body: JSON.stringify(body) });
         showToast('Article published! 📰', 'success');
         resetNewsForm();
@@ -1098,20 +1281,26 @@
 
     function resetNewsForm() {
       ['ns-title', 'ns-excerpt', 'ns-content'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('ns-img-rows').innerHTML = `<div class="flex gap-2 mb-2"><input type="url" class="form-input ns-img-input" placeholder="https://images.unsplash.com/photo-... (Cover Photo)" style="flex:1" oninput="previewFirstNewsImg()"><button type="button" class="btn btn-secondary btn-sm" onclick="removeImgRow(this,'ns-img-rows')" title="Remove">✕</button></div>`;
+      document.getElementById('ns-main-url').value = '';
+      document.getElementById('ns-main-file').value = '';
+      document.getElementById('ns-file-preview').style.display = 'none';
+      document.getElementById('ns-img-rows').innerHTML = '';
       document.getElementById('ns-img-pre').classList.remove('visible');
       document.getElementById('ns-error').classList.add('hidden');
+      setNsPhotoMode('url');
     }
 
     // ─── Manage Photos (post-publish) ───
     let mpType = null;  // 'event' or 'news'
     let mpItemId = null;
     let mpRowCount = 0;
+    let mpAddMode = 'url';  // 'url' | 'file'
 
     function openManagePhotos(type, id, mainUrl, extraImagesRaw) {
       mpType = type;
       mpItemId = id;
       mpRowCount = 0;
+      mpAddMode = 'url';
 
       let allPhotos = [];
       if (mainUrl) allPhotos.push(mainUrl);
@@ -1123,7 +1312,12 @@
       const container = document.getElementById('mp-photo-rows');
       container.innerHTML = '';
       allPhotos.forEach(url => addMpRow(url));
-      if (!allPhotos.length) addMpRow();
+
+      // Reset the add-new section
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      setMpAddMode('url');
 
       refreshMpPreview();
       document.getElementById('mp-item-title').textContent =
@@ -1131,12 +1325,38 @@
       document.getElementById('modal-mp').classList.add('open');
     }
 
+    function setMpAddMode(mode) {
+      mpAddMode = mode;
+      document.getElementById('mp-btn-url').classList.toggle('active', mode === 'url');
+      document.getElementById('mp-btn-file').classList.toggle('active', mode === 'file');
+      document.getElementById('mp-url-wrap').style.display = mode === 'url' ? 'block' : 'none';
+      document.getElementById('mp-file-wrap').style.display = mode === 'file' ? 'block' : 'none';
+    }
+
+    async function addNewMpPhoto() {
+      let url = '';
+      if (mpAddMode === 'file') {
+        const file = document.getElementById('mp-new-file').files[0];
+        if (!file) { showToast('Please choose a file first', 'error'); return; }
+        try { url = await uploadImageFile(file); } catch (e) { showToast(e.message, 'error'); return; }
+      } else {
+        url = convertDriveUrl(document.getElementById('mp-new-url').value.trim());
+        if (!url) { showToast('Please enter a URL or Drive link', 'error'); return; }
+      }
+      addMpRow(url);
+      document.getElementById('mp-new-url').value = '';
+      document.getElementById('mp-new-file').value = '';
+      document.getElementById('mp-new-file-preview').style.display = 'none';
+      refreshMpPreview();
+      showToast('Photo added — click Save to apply', 'success');
+    }
+
     function addMpRow(url = '') {
       const container = document.getElementById('mp-photo-rows');
       const idx = mpRowCount++;
       const div = document.createElement('div');
       div.className = 'flex gap-2 mb-2'; div.id = `mp-row-${idx}`;
-      div.innerHTML = `<input type="url" class="form-input mp-url-input" placeholder="https://images.unsplash.com/photo-..." style="flex:1" value="${url}" oninput="refreshMpPreview()"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mp-row-${idx}').remove();refreshMpPreview()" title="Remove">✕</button>`;
+      div.innerHTML = `<input type="url" class="form-input mp-url-input" placeholder="https://..." style="flex:1" value="${url}" oninput="refreshMpPreview()"><button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('mp-row-${idx}').remove();refreshMpPreview()" title="Remove">✕</button>`;
       container.appendChild(div);
     }
 

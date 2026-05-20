@@ -6,11 +6,11 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 // Use relative URLs to work on any server (local or deployed)
 const API = isLocal
   ? 'http://localhost:5000'
-  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin
+  : 'https://hospitable-smile-production-05b4.up.railway.app';  // Empty string = same origin
 
 const SERVER = isLocal
   ? 'http://localhost:5000'
-  : 'https://merry-emotion-production-0357.up.railway.app';  // Empty string = same origin for navigation
+  : 'https://hospitable-smile-production-05b4.up.railway.app';  // Empty string = same origin for navigation
 
 // ─── If opened directly via file://, show message or try localhost ───
 (function () {
@@ -55,11 +55,14 @@ async function loadAuthState() {
 
 function renderNavAuth() {
   const actions = document.getElementById('nav-actions');
-  // Remove any previously injected mobile auth link
   const existingMobileAuth = document.getElementById('mobile-auth-link');
   if (existingMobileAuth) existingMobileAuth.remove();
 
   if (!actions) return;
+
+  // ─── Hide / show protected nav links based on auth ───
+  const protectedLinks = document.querySelectorAll('.nav-link-protected');
+  protectedLinks.forEach(el => { el.style.display = currentUser ? '' : 'none'; });
 
   const isMobile = window.innerWidth <= 768;
 
@@ -74,7 +77,6 @@ function renderNavAuth() {
       </a>
       <button class="btn btn-secondary btn-sm btn-pill" onclick="logout()">Sign Out</button>`;
 
-    // Only inject into mobile dropdown when hamburger is active
     if (isMobile) {
       const navLinks = document.getElementById('nav-links');
       if (navLinks) {
@@ -88,22 +90,42 @@ function renderNavAuth() {
       }
     }
   } else {
-    actions.innerHTML = `<a href="login.html" class="btn-nav-login">Sign In</a>`;
+    actions.innerHTML = `<a href="login.html" class="btn btn-primary btn-sm btn-pill">Sign In</a>`;
 
-    // Only inject Sign In into mobile dropdown when on mobile
     if (isMobile) {
       const navLinks = document.getElementById('nav-links');
       if (navLinks) {
         const mobileAuth = document.createElement('a');
         mobileAuth.id = 'mobile-auth-link';
         mobileAuth.href = 'login.html';
-        mobileAuth.className = 'btn-nav-login';
+        mobileAuth.className = 'btn btn-primary btn-sm btn-pill';
         mobileAuth.style.cssText = 'margin-top:.5rem;text-align:center;border-top:1px solid var(--surface-container);padding-top:.75rem';
         mobileAuth.textContent = 'Sign In';
         navLinks.appendChild(mobileAuth);
       }
     }
   }
+}
+
+/**
+ * requireAuth – call at the top of any protected page's init function.
+ * If the user is not signed in (or doesn't have the required role),
+ * saves the current URL and redirects to login.
+ * @param {string[]} [allowedRoles]  e.g. ['teacher','admin']. Omit to allow any logged-in user.
+ */
+async function requireAuth(allowedRoles) {
+  await loadAuthState();
+  if (!currentUser) {
+    sessionStorage.setItem('redirectAfterLogin', window.location.href);
+    goTo('login.html');
+    return false;
+  }
+  if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
+    showToast('Access denied for your role.', 'error');
+    setTimeout(() => goTo('index.html'), 1200);
+    return false;
+  }
+  return true;
 }
 
 

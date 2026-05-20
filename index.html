@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -20,9 +20,9 @@
       <a href="index.html" class="nav-logo">RITB</a>
       <div class="nav-links" id="nav-links">
         <a href="index.html" class="active">Home</a>
-        <a href="news-archive.html">News</a>
-        <a href="events-calendar.html">Events</a>
-        <a href="faculty-directory.html">Faculty</a>
+        <a href="news-archive.html" class="nav-link-protected">News</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
+        <a href="faculty-directory.html" class="nav-link-protected">Faculty</a>
       </div>
       <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto; margin-right: 1rem;">
         <span class="material-symbols-rounded">menu</span>
@@ -139,9 +139,9 @@
         <div>
           <div class="footer-heading">Quick Links</div>
           <ul>
-            <li><a href="news-archive.html">News Archive</a></li>
-            <li><a href="events-calendar.html">Events Calendar</a></li>
-            <li><a href="faculty-directory.html">Faculty Directory</a></li>
+            <li><a href="news-archive.html" class="nav-link-protected">News Archive</a></li>
+            <li><a href="events-calendar.html" class="nav-link-protected">Events Calendar</a></li>
+            <li><a href="faculty-directory.html" class="nav-link-protected">Faculty Directory</a></li>
             <li><a href="login.html">Faculty Portal</a></li>
           </ul>
         </div>
@@ -227,24 +227,17 @@
       // Load events
       try {
         const events = await apiFetch('/api/events');
-
-        // Filter for upcoming/ongoing events using LOCAL date (not UTC) to avoid timezone shift
-        const now = new Date();
-        const upcomingEvents = events.filter(ev => {
-          if (!ev.event_date) return true;
-          // Parse YYYY-MM-DD + time_end as LOCAL time to avoid UTC midnight shift
-          const [y, m, d] = ev.event_date.split('-').map(Number);
-          const [eh = 23, em = 59] = (ev.time_end || '23:59').split(':').map(Number);
-          const endDateTime = new Date(y, m - 1, d, eh, em, 0);
-          return endDateTime >= now;
-        });
-
-        const shown = upcomingEvents.slice(0, 3);
+        
+        // Sort all events so the most recent ones (closest to today, or just passed) show up
+        // The API returns them ASC (oldest first). Let's reverse to show newest first
+        const sortedEvents = events.reverse();
+        
+        const shown = sortedEvents.slice(0, 3);
         if (!shown.length) {
           document.getElementById('events-grid').innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:3rem 1rem;color:var(--on-surface-variant)">
               <span class="material-symbols-rounded" style="font-size:3rem;display:block;margin-bottom:.75rem;opacity:.4">event_busy</span>
-              <p style="font-size:1rem;font-weight:600;margin-bottom:.25rem">No upcoming events</p>
+              <p style="font-size:1rem;font-weight:600;margin-bottom:.25rem">No events yet</p>
               <p style="font-size:.875rem">Check back soon — new events will appear here.</p>
             </div>`;
           return;

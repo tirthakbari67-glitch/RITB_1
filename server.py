@@ -594,17 +594,15 @@ def get_faculty():
     db = get_db()
     department = request.args.get("department", "")
     search = request.args.get("search", "")
-    query = "SELECT f.*, u.status as user_status FROM faculty f LEFT JOIN users u ON f.user_id = u.id"
+    # Only return ACTIVE faculty on the public directory
+    query = "SELECT f.*, u.status as user_status FROM faculty f JOIN users u ON f.user_id = u.id WHERE u.status = 'active'"
     params = []
-    conditions = []
     if department and department != "All":
-        conditions.append("department = ?")
+        query += " AND f.department = ?"
         params.append(department)
     if search:
-        conditions.append("(f.name LIKE ? OR f.department LIKE ? OR f.research_areas LIKE ?)")
+        query += " AND (f.name LIKE ? OR f.department LIKE ? OR f.research_areas LIKE ?)"
         params.extend([f"%{search}%", f"%{search}%", f"%{search}%"])
-    if conditions:
-        query += " WHERE " + " AND ".join(conditions)
     query += " ORDER BY f.name ASC"
     faculty = rows_to_list(db.execute(query, params).fetchall())
     for f in faculty:
@@ -642,6 +640,65 @@ def get_faculty_member(faculty_id):
     if f.get("user_status") == "pending":
         f["bio"] = None
     return jsonify(f)
+
+
+@app.route("/api/faculty/me", methods=["GET"])
+def get_my_faculty_profile():
+    """Return the logged-in teacher's own faculty profile (including pending accounts)."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    row = db.execute(
+        "SELECT f.*, u.status as user_status FROM faculty f JOIN users u ON f.user_id = u.id WHERE f.user_id = ?",
+        (user["id"],)
+    ).fetchone()
+    db.close()
+    if not row:
+        return jsonify(None)
+    f = dict(row)
+    try:
+        f["publications"] = json.loads(f.get("publications") or "[]")
+        f["courses"] = json.loads(f.get("courses") or "[]")
+    except Exception:
+        f["publications"] = []
+        f["courses"] = []
+    return jsonify(f)
+
+
+@app.route("/api/events/my", methods=["GET"])
+def get_my_events():
+    """Return only the calling teacher's own events (server-side filter, no type-mismatch)."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    events = rows_to_list(
+        db.execute(
+            "SELECT * FROM events WHERE organizer_id = ? ORDER BY event_date DESC",
+            (user["id"],),
+        ).fetchall()
+    )
+    db.close()
+    return jsonify(events)
+
+
+@app.route("/api/news/my", methods=["GET"])
+def get_my_news():
+    """Return only the calling teacher's own news articles."""
+    user = require_auth(["admin", "teacher"])
+    if not user:
+        return jsonify({"error": "Unauthorized"}), 401
+    db = get_db()
+    articles = rows_to_list(
+        db.execute(
+            "SELECT * FROM news WHERE author_id = ? ORDER BY published_at DESC",
+            (user["id"],),
+        ).fetchall()
+    )
+    db.close()
+    return jsonify(articles)
+
 
 
 @app.route("/api/faculty", methods=["POST"])
@@ -1032,6 +1089,44 @@ def get_spotlight():
         (cutoff,)
     ).fetchall())
     db.close()
+    return jsonify(rows)
+
+
+@app.route("/api/top-performers", methods=["GET"])
+def get_top_performers():
+    """
+    Top 3 students by attendance in the CURRENT calendar month.
+    Groups by student_name across all events whose event_date starts
+    with YYYY-MM of today. Auto-resets each new month. No auth needed.
+    """
+    month_prefix = datetime.now().strftime("%Y-%m")
+    db = get_db()
+    rows = rows_to_list(db.execute(
+        """
+        SELECT
+            a.student_name,
+            a.student_branch,
+            a.student_year,
+            COUNT(DISTINCT a.event_id)                                   AS total_events,
+            SUM(CASE WHEN a.status = 'present' THEN 1 ELSE 0 END)       AS present_count,
+            ROUND(
+                100.0 * SUM(CASE WHEN a.status='present' THEN 1 ELSE 0 END)
+                      / CASE WHEN COUNT(DISTINCT a.event_id) = 0 THEN 1 ELSE COUNT(DISTINCT a.event_id) END, 1
+            )                                                             AS attendance_pct
+        FROM attendance a
+        JOIN events e ON e.id = a.event_id
+        WHERE e.event_date LIKE ?
+        GROUP BY a.student_name, a.student_branch, a.student_year
+        HAVING total_events > 0
+        ORDER BY present_count DESC, attendance_pct DESC
+        LIMIT 3
+        """,
+        (f"{month_prefix}%",)
+    ).fetchall())
+    db.close()
+    medal_map = {0: "1st", 1: "2nd", 2: "3rd"}
+    for i, row in enumerate(rows):
+        row["rank"] = medal_map.get(i, f"#{i+1}")
     return jsonify(rows)
 
 

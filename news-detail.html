@@ -39,8 +39,8 @@
       <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="news-archive.html" class="active">News</a>
-        <a href="events-calendar.html">Events</a>
-        <a href="faculty-directory.html">Faculty</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
+        <a href="faculty-directory.html" class="nav-link-protected">Faculty</a>
       </div>
       <div class="nav-actions" id="nav-actions"></div>
     </div>
@@ -161,7 +161,7 @@
       showToast('Link copied!', 'success');
     }
 
-    loadArticle();
+    (async () => { if (!await requireAuth()) return; loadArticle(); })();
   </script>
 </body>
 

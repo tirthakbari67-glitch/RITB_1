@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -18,8 +18,8 @@
       <div class="nav-links" id="nav-links">
         <a href="index.html">Home</a>
         <a href="news-archive.html" class="active">News</a>
-        <a href="events-calendar.html">Events</a>
-        <a href="faculty-directory.html">Faculty</a>
+        <a href="events-calendar.html" class="nav-link-protected">Events</a>
+        <a href="faculty-directory.html" class="nav-link-protected">Faculty</a>
       </div>
       <button class="nav-menu-btn" onclick="toggleMenu()" style="margin-left:auto; margin-right: 1rem;">
         <span class="material-symbols-rounded">menu</span>
@@ -89,9 +89,9 @@
         <div>
           <div class="footer-heading">Sections</div>
           <ul>
-            <li><a href="news-archive.html">All News</a></li>
-            <li><a href="events-calendar.html">Events</a></li>
-            <li><a href="faculty-directory.html">Faculty</a></li>
+            <li><a href="news-archive.html" class="nav-link-protected">All News</a></li>
+            <li><a href="events-calendar.html" class="nav-link-protected">Events</a></li>
+            <li><a href="faculty-directory.html" class="nav-link-protected">Faculty</a></li>
           </ul>
         </div>
         <div>
@@ -121,7 +121,7 @@
       activeCategory = cat;
       document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
       el.classList.add('active');
-      loadNews();
+      (async () => { if (!await requireAuth()) return; loadNews(); })();
     }
 
     async function loadNews() {
@@ -180,7 +180,7 @@
       }
     }
 
-    loadNews();
+    (async () => { if (!await requireAuth()) return; loadNews(); })();
   </script>
 </body>
 
