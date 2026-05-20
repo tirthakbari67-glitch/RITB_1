@@ -480,29 +480,6 @@ def delete_news(news_id):
     return jsonify({"message": "Deleted"})
 
 
-@app.route("/api/test-db")
-def test_db():
-    from database import DB_PATH
-    import os
-    res = {
-        "DB_PATH": DB_PATH,
-        "exists": os.path.exists(DB_PATH),
-        "writable": os.access(DB_PATH, os.W_OK) if os.path.exists(DB_PATH) else None,
-        "env_vercel": os.environ.get("VERCEL"),
-    }
-    try:
-        db = get_db()
-        users = [dict(row) for row in db.execute("SELECT id, email, role, name, status FROM users").fetchall()]
-        events = [dict(row) for row in db.execute("SELECT id, title, category FROM events").fetchall()]
-        res["users"] = users
-        res["events"] = events
-        res["write_success"] = True
-        db.close()
-    except Exception as e:
-        res["write_success"] = False
-        res["write_error"] = str(e)
-    return jsonify(res)
-
 
 # ─────────────────────────── EVENTS ───────────────────────────
 
