@@ -207,7 +207,7 @@ function getCategoryColor(cat) {
 // ─── Image Fallback ───
 function imgFallback(img, type = 'news') {
   const fallbacks = {
-    news: 'https://images.unsplash.com/photo-1562774053-701939374585?w=800',
+    news: '/uploads/rathinam_campus.jpg',
     event: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800',
     faculty: 'https://i.pravatar.cc/300?img=1'
   };

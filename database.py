@@ -237,7 +237,7 @@ def _seed_data(c):
              <p>"We're not just building a building," said President Marlowe at the groundbreaking ceremony. "We're building the future of academic research—a place where a biologist and an engineer can have a conversation over coffee that leads to the next great discovery."</p>
              <p>The Hub is expected to open in Fall 2026 and will accommodate over 500 researchers and 1,200 undergraduate students daily.</p>''',
              'Groundbreaking ceremony held for the new 120,000 sq-ft interdisciplinary research complex, set to open Fall 2026.',
-             'https://images.unsplash.com/photo-1562774053-701939374585?w=800',
+             '/uploads/rathinam_campus.jpg',
              admin_id),
             ('How AI is Reshaping the Liberal Arts Curriculum', 'Academics',
              '''<p>The Department of Humanities has launched a landmark initiative to integrate artificial intelligence tools into its core curriculum, a move that has sparked debate, excitement, and a wave of creative experimentation across campus.</p>
