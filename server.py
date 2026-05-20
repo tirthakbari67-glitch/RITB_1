@@ -56,6 +56,17 @@ app.config.update(
 # Initialize database tables on startup (required for Gunicorn/Railway)
 with app.app_context():
     init_db()
+    db = get_db()
+    try:
+        db.execute("DELETE FROM faculty WHERE id BETWEEN 1 AND 6")
+        db.execute("DELETE FROM news WHERE id BETWEEN 1 AND 6")
+        db.execute("DELETE FROM events WHERE id BETWEEN 1 AND 7")
+        db.execute("DELETE FROM users WHERE email IN ('sarah.jenkins@scholastic.edu', 'alex.student@scholastic.edu')")
+        db.commit()
+    except Exception:
+        pass
+    finally:
+        db.close()
 
 if os.environ.get("VERCEL"):
     UPLOAD_FOLDER = "/tmp/uploads"
@@ -1169,7 +1180,5 @@ def admin_attendance_overview():
 if __name__ == "__main__":
     init_db()
     print("\n✓ Scholastic Pulse server running at http://localhost:5000")
-    print("  Admin login: admin@ritb.edu / admin123")
-    print("  Teacher login: sarah.jenkins@scholastic.edu / teacher123")
-    print("  Student login: alex.student@scholastic.edu / student123\n")
+    print("  Admin login: admin@ritb.edu / admin123\n")
     app.run(debug=True, port=5000)
