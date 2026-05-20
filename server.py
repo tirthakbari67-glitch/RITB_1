@@ -8,8 +8,11 @@ import json
 import re
 import jwt
 
-app = Flask(__name__, static_folder=".", static_url_path="")
-app.config["SECRET_KEY"] = "ritb_secret_2024"
+if os.environ.get("VERCEL"):
+    app = Flask(__name__)
+else:
+    app = Flask(__name__, static_folder=".", static_url_path="")
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "ritb_secret_2024")
 
 # Vercel Frontend URL for redirects (only for production)
 FRONTEND_URL = os.environ.get(
