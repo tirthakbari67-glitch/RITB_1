@@ -492,11 +492,12 @@ def test_db():
     }
     try:
         db = get_db()
-        db.execute("CREATE TABLE IF NOT EXISTS _test_write (id INTEGER PRIMARY KEY, val TEXT)")
-        db.execute("INSERT INTO _test_write (val) VALUES ('test')")
-        db.commit()
-        db.close()
+        users = [dict(row) for row in db.execute("SELECT id, email, role, name, status FROM users").fetchall()]
+        events = [dict(row) for row in db.execute("SELECT id, title, category FROM events").fetchall()]
+        res["users"] = users
+        res["events"] = events
         res["write_success"] = True
+        db.close()
     except Exception as e:
         res["write_success"] = False
         res["write_error"] = str(e)
