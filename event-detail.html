@@ -346,6 +346,7 @@
           const extras = JSON.parse(ev.extra_images || '[]');
           if (Array.isArray(extras)) photos = photos.concat(extras);
         } catch {}
+        photos = photos.map(resolveImageUrl);
         galleryInit(photos);
 
         document.getElementById('event-cat').textContent = ev.category;

@@ -138,7 +138,7 @@
       try {
         const a = await apiFetch(`/api/news/${newsId}`);
         document.title = `${a.title} | RITB`;
-        document.getElementById('article-img').src = a.image_url || '';
+        document.getElementById('article-img').src = resolveImageUrl(a.image_url);
         document.getElementById('article-cat').textContent = a.category;
         document.getElementById('article-cat-bc').textContent = a.category;
         document.getElementById('article-date').textContent = formatDate(a.published_at);

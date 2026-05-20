@@ -205,7 +205,7 @@
       try {
         const f = await apiFetch(`/api/faculty/${id}`);
         document.title = `${f.name} | RITB`;
-        document.getElementById('f-img').src = f.photo_url || '';
+        document.getElementById('f-img').src = resolveImageUrl(f.photo_url);
         document.getElementById('f-name').textContent = f.name;
         document.getElementById('f-title').textContent = f.title;
         document.getElementById('f-dept').textContent = f.department;

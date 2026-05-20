@@ -215,6 +215,17 @@ function imgFallback(img, type = 'news') {
   img.onerror = null;
 }
 
+// ─── Resolve Image URL ───
+function resolveImageUrl(url) {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+    return url;
+  }
+  const base = API.endsWith('/') ? API.slice(0, -1) : API;
+  const path = url.startsWith('/') ? url : '/' + url;
+  return base + path;
+}
+
 // ─── Active Nav Link ───
 function setActiveNav() {
   const path = window.location.pathname.split('/').pop() || 'index.html';

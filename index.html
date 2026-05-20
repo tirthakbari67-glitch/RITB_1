@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -177,7 +177,7 @@
           const top = news[0];
           document.getElementById('hero-title').textContent = top.title;
           document.getElementById('hero-excerpt').textContent = top.excerpt || '';
-          document.getElementById('hero-img').src = top.image_url || '';
+          document.getElementById('hero-img').src = resolveImageUrl(top.image_url);
           document.getElementById('hero-cat').textContent = top.category;
           document.getElementById('hero-btn').href = `news-detail.html?id=${top.id}`;
         }
@@ -185,7 +185,7 @@
         // Featured
         if (news.length > 1) {
           const f = news[1];
-          document.getElementById('featured-img').src = f.image_url || '';
+          document.getElementById('featured-img').src = resolveImageUrl(f.image_url);
           document.getElementById('featured-cat').textContent = f.category;
           document.getElementById('featured-date').textContent = timeAgo(f.published_at);
           document.getElementById('featured-title').textContent = f.title;
@@ -198,7 +198,7 @@
         const secondary = news.slice(2, 5);
         document.getElementById('secondary-articles').innerHTML = secondary.map(a => `
       <a href="news-detail.html?id=${a.id}" style="display:flex;gap:1rem;align-items:flex-start;text-decoration:none;padding:1rem;border-radius:var(--radius-md);background:var(--surface-container-lowest);transition:all var(--transition)" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <img src="${a.image_url || ''}" alt="" style="width:80px;height:60px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0" onerror="imgFallback(this,'news')">
+        <img src="${resolveImageUrl(a.image_url)}" alt="" style="width:80px;height:60px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0" onerror="imgFallback(this,'news')">
         <div>
           <span class="chip ${getCategoryColor(a.category)} label-sm" style="margin-bottom:0.25rem">${a.category}</span>
           <h4 style="font-family:var(--font-display);font-size:1rem;line-height:1.35;margin-bottom:0.25rem;color:var(--on-surface)">${a.title}</h4>
@@ -210,7 +210,7 @@
         const more = news.slice(5, 8);
         document.getElementById('more-articles').innerHTML = more.map(a => `
       <a href="news-detail.html?id=${a.id}" class="card" style="display:block">
-        <img class="card-img" src="${a.image_url}" alt="" onerror="imgFallback(this,'news')">
+        <img class="card-img" src="${resolveImageUrl(a.image_url)}" alt="" onerror="imgFallback(this,'news')">
         <div class="card-body">
           <div class="card-meta">
             <span class="chip ${getCategoryColor(a.category)} label-sm">${a.category}</span>
@@ -244,7 +244,7 @@
         }
         document.getElementById('events-grid').innerHTML = shown.map(ev => `
       <a href="event-detail.html?id=${ev.id}" class="card" style="display:block">
-        <img class="card-img" src="${ev.image_url}" alt="" onerror="imgFallback(this,'event')">
+        <img class="card-img" src="${resolveImageUrl(ev.image_url)}" alt="" onerror="imgFallback(this,'event')">
         <div class="card-body">
           <div class="card-meta">
             <span class="chip ${getCategoryColor(ev.category)}">${ev.category}</span>

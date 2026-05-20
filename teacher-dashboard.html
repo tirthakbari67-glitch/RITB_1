@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -883,7 +883,7 @@
         // Hero
         document.getElementById('hero-name').textContent = myProfile ? myProfile.name : currentUser.name;
         document.getElementById('hero-meta').textContent = myProfile ? `${myProfile.department} · ${myProfile.title}` : 'Faculty Member';
-        document.getElementById('avatar').src = myProfile?.photo_url || '';
+        document.getElementById('avatar').src = resolvePhotoUrl(myProfile?.photo_url);
 
         // Stats
         document.getElementById('stat-ev').textContent = myEvents.length;
@@ -1365,7 +1365,7 @@
       const strip = document.getElementById('mp-preview-strip');
       strip.innerHTML = urls.map((u, i) => `
         <div style="position:relative">
-          <img src="${u}" style="width:88px;height:62px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid ${i === 0 ? 'var(--primary)' : 'var(--surface-container)'}" onerror="this.style.display='none'">
+          <img src="${resolvePhotoUrl(u)}" style="width:88px;height:62px;object-fit:cover;border-radius:var(--radius-sm);border:2px solid ${i === 0 ? 'var(--primary)' : 'var(--surface-container)'}" onerror="this.style.display='none'">
           ${i === 0 ? '<span style="position:absolute;bottom:2px;left:4px;font-size:0.55rem;color:#fff;background:var(--primary);padding:0 3px;border-radius:2px">Main</span>' : ''}
         </div>`).join('');
     }
