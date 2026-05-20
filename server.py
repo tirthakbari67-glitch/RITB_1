@@ -54,7 +54,10 @@ app.config.update(
 with app.app_context():
     init_db()
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
+if os.environ.get("VERCEL"):
+    UPLOAD_FOLDER = "/tmp/uploads"
+else:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ─────────────────────────── Helpers ───────────────────────────
@@ -112,8 +115,13 @@ def static_files(filename):
 
 @app.route("/uploads/<path:filename>")
 def serve_upload(filename):
-    """Serve uploaded files from the uploads folder."""
-    return send_from_directory(UPLOAD_FOLDER, filename)
+    """Serve uploaded files from the uploads folder (with fallback to repository uploads)."""
+    if os.path.exists(os.path.join(UPLOAD_FOLDER, filename)):
+        return send_from_directory(UPLOAD_FOLDER, filename)
+    repo_uploads = os.path.join(os.path.dirname(__file__), "uploads")
+    if os.path.exists(os.path.join(repo_uploads, filename)):
+        return send_from_directory(repo_uploads, filename)
+    return jsonify({"error": "File not found"}), 404
 
 
 # ─────────────────────────── FILE UPLOAD ───────────────────────────

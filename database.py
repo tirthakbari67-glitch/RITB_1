@@ -4,7 +4,15 @@ import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'RITB.db')
+DB_NAME = 'RITB.db'
+if os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL'):
+    DB_PATH = os.path.join('/tmp', DB_NAME)
+    original_path = os.path.join(os.path.dirname(__file__), DB_NAME)
+    if not os.path.exists(DB_PATH) and os.path.exists(original_path):
+        import shutil
+        shutil.copy2(original_path, DB_PATH)
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), DB_NAME)
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)
