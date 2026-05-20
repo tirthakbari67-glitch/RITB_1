@@ -61,6 +61,7 @@ with app.app_context():
         db.execute("DELETE FROM faculty WHERE id BETWEEN 1 AND 6")
         db.execute("DELETE FROM news WHERE id BETWEEN 1 AND 6")
         db.execute("DELETE FROM events WHERE id BETWEEN 1 AND 7")
+        db.execute("DELETE FROM events WHERE title = 'hjklbon'")
         db.execute("DELETE FROM users WHERE email IN ('sarah.jenkins@scholastic.edu', 'alex.student@scholastic.edu')")
         db.commit()
     except Exception:
