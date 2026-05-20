@@ -480,6 +480,29 @@ def delete_news(news_id):
     return jsonify({"message": "Deleted"})
 
 
+@app.route("/api/test-db")
+def test_db():
+    from database import DB_PATH
+    import os
+    res = {
+        "DB_PATH": DB_PATH,
+        "exists": os.path.exists(DB_PATH),
+        "writable": os.access(DB_PATH, os.W_OK) if os.path.exists(DB_PATH) else None,
+        "env_vercel": os.environ.get("VERCEL"),
+    }
+    try:
+        db = get_db()
+        db.execute("CREATE TABLE IF NOT EXISTS _test_write (id INTEGER PRIMARY KEY, val TEXT)")
+        db.execute("INSERT INTO _test_write (val) VALUES ('test')")
+        db.commit()
+        db.close()
+        res["write_success"] = True
+    except Exception as e:
+        res["write_success"] = False
+        res["write_error"] = str(e)
+    return jsonify(res)
+
+
 # ─────────────────────────── EVENTS ───────────────────────────
 
 
@@ -1180,6 +1203,6 @@ def admin_attendance_overview():
 
 if __name__ == "__main__":
     init_db()
-    print("\n✓ Scholastic Pulse server running at http://localhost:5000")
+    print("\n* Scholastic Pulse server running at http://localhost:5000")
     print("  Admin login: admin@ritb.edu / admin123\n")
     app.run(debug=True, port=5000)
