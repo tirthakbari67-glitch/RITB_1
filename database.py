@@ -9,8 +9,14 @@ if os.environ.get('VERCEL') == '1' or os.environ.get('VERCEL'):
     DB_PATH = os.path.join('/tmp', DB_NAME)
     original_path = os.path.join(os.path.dirname(__file__), DB_NAME)
     if not os.path.exists(DB_PATH) and os.path.exists(original_path):
-        import shutil
-        shutil.copy2(original_path, DB_PATH)
+        with open(original_path, 'rb') as sf:
+            with open(DB_PATH, 'wb') as df:
+                df.write(sf.read())
+    if os.path.exists(DB_PATH):
+        try:
+            os.chmod(DB_PATH, 0o666)
+        except Exception:
+            pass
 else:
     DB_PATH = os.path.join(os.path.dirname(__file__), DB_NAME)
 
